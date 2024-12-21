@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    
+    <Version>1.0.0</Version>
+    <Authors>Dumbelfo</Authors>
+    <Company>AshProject</Company>
+    <PackageDescription>Particle simulation!</PackageDescription>
+	<RepositoryUrl>https://github.com/Dumbelfo08/Unisim</RepositoryUrl>
+	
+	<ApplicationIcon>res/icon.ico</ApplicationIcon>
+  </PropertyGroup>
+
+  <ItemGroup>
+	<EmbeddedResource Include="res/*" />
+	<EmbeddedResource Include="res/textures/*" />
+	<EmbeddedResource Include="shaders/*" />
+	
+    <PackageReference Include="AshLib" Version="2.1.0" />
+    <PackageReference Include="OpenTK" Version="4.8.2" />
+    <PackageReference Include="StbImageSharp" Version="2.30.15" />
+    <PackageReference Include="System.Drawing.Common" Version="9.0.0" />
+  </ItemGroup>
+  
+</Project>
