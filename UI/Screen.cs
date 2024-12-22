@@ -9,11 +9,7 @@ class Screen{
 	public bool writing;
 	public int selected;
 	
-	Renderer ren;
-	
-	public Screen(Renderer r, params Button[] b){
-		ren = r;
-		
+	public Screen(params Button[] b){
 		buttons = new List<Button>();
 		
 		buttons.AddRange(b);
@@ -25,22 +21,30 @@ class Screen{
 		return this;
 	}
 	
-	public void draw(){
+	public void draw(Renderer ren, bool doHover){
 		Vector2d mouse = ren.cam.mouseLastPos - new Vector2d(ren.width / 2f, ren.height / 2f);
 		mouse.Y = -mouse.Y;
 		
 		foreach(Button b in buttons){
 			if(b.active){
-				b.draw(mouse);
+				b.draw(ren, mouse);
+			}
+		}
+		
+		if(doHover){
+			foreach(Button b in buttons){
+				if(b.active && b.hasHover && b.box != null && b.box % mouse){
+					b.drawHover(ren, mouse);
+				}
 			}
 		}
 	}
 	
-	public bool click(Vector2d m){
+	public bool click(Renderer ren, Vector2d m, bool shift){
 		Vector2d mouse = ren.cam.mouseLastPos - new Vector2d(ren.width / 2f, ren.height / 2f);
 		mouse.Y = -mouse.Y;
 		
-		for(int i = 0; i < buttons.Count; i++){
+		for(int i = buttons.Count - 1; i >= 0; i--){
 			Button b = buttons[i];
 			if(b.active && b.box != null && b.box % mouse){
 				if(writing && b is Field f){
@@ -56,7 +60,9 @@ class Screen{
 						selected = -1;
 					}
 					
-					if(b.action != null){
+					if(b.quickAction != null && shift){
+						b.quickAction.Invoke();
+					}else if(b.action != null){
 						b.action.Invoke();
 					}
 				}
@@ -72,6 +78,14 @@ class Screen{
 		return false;
 	}
 	
+	public WritingType tryGet(){
+		if(writing && selected > -1 && buttons[selected] is Field f){
+			return f.type;
+		}
+		
+		return WritingType.Hex;
+	}
+	
 	public void tryAdd(char c){
 		if(writing && selected != -1 && buttons[selected] is Field f){
 			f.addChar(c);
@@ -84,9 +98,9 @@ class Screen{
 		}
 	}
 	
-	public void updateProj(){
+	public void updateProj(Renderer ren){
 		foreach(Button b in buttons){
-			b.updateBox();
+			b.updateBox(ren);
 		}
 	}
 }

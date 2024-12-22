@@ -3,72 +3,77 @@ using OpenTK;
 using OpenTK.Mathematics;
 using AshLib;
 
-class Field : Button{
-	public string text;
-	string question;
+class CheckButton : Button{	
+	public string? description;
 	
 	Vector2i corner;
 	Vector2 offset;
 	
 	Vector2 pos;
-	Vector2 textPos;
-	Vector2 qPos;
 	
-	float size;
+	Vector2 size;
 	
-	int maxChars;
-	public WritingType type;
+	public Color3 tickColor;
+	public Color3 hoverTickColor;
+	public Color3 color;
+	public Color3 hoverColor;
 	
-	public bool selected;
+	public bool on;
 	
-	public string? description;
-	
-	public Field(string q, string t, int cx, int cy, float ox, float oy, float xs, int mc, WritingType wt) : base(){
-		text = t;
-		question = q;
-		
-		maxChars = mc;
-		type = wt;
-		
+	public CheckButton(bool o, int cx, int cy, float ox, float oy, float xs, float ys, Color3 c) : base(){
 		corner = new Vector2i(cx, cy);
 		offset = new Vector2(ox, oy);
 		
-		size = xs;
+		size = new Vector2(xs, ys);
+		
+		on = o;
+		
+		color = c;
+		hoverColor = new Color3((byte) (color.R * 1.2f), (byte) (color.G * 1.2f), color.B);
+		tickColor = Renderer.textColor;
+		hoverTickColor = Renderer.selectedTextColor;
+		
+		setAction(toggle);
 	}
 	
-	public Field setDescription(string d){
+	public CheckButton(bool o, int cx, int cy, float ox, float oy, float xs, float ys, Color3 c, Color3 tc, Color3 hc) : base(){
+		corner = new Vector2i(cx, cy);
+		offset = new Vector2(ox, oy);
+		
+		size = new Vector2(xs, ys);
+		
+		on = o;
+		
+		color = c;
+		hoverColor = new Color3((byte) (color.R * 1.2f), (byte) (color.G * 1.2f), color.B);
+		tickColor = tc;
+		hoverTickColor = hc;
+		
+		setAction(toggle);
+	}
+	
+	public CheckButton setDescription(string d){
 		description = d;
 		hasHover = true;
 		return this;
 	}
 	
-	public void addChar(char c){
-		if(text.Length >= maxChars){
-			return;
-		}
-		text += c;
-	}
-	
-	public void delChar(){
-		if(text.Length == 0){
-			return;
-		}
-		text = text.Substring(0, text.Length - 1);
+	void toggle(){
+		on = !on;
 	}
 	
 	public override void draw(Renderer ren, Vector2d m){
-		Vector2 size = new Vector2(text.Length * Renderer.textSize.X + 10f, Renderer.textSize.Y + 10f);
-		
-		size.X = Math.Max(size.X, this.size);
-		
-		if(selected){
-			ren.ui.drawRect(pos, size, Renderer.fieldSelectedColor, 0.8f);
-			ren.fr.drawText(text, textPos, Renderer.textSize, Renderer.textColor, 1f);
+		if(box != null && box % m){
+			ren.ui.drawRect(pos, size, hoverColor, 1f);
+			if(on){
+				ren.ui.draw("tick", pos, size, hoverTickColor);
+			}
 		}else{
-			ren.ui.drawRect(pos, size, Renderer.fieldColor, 0.7f);
-			ren.fr.drawText(text, textPos, Renderer.textSize, Renderer.fieldTextColor, 1f);
+			ren.ui.drawRect(pos, size, color, 1f);
+			if(on){
+				ren.ui.draw("tick", pos, size, tickColor);
+			}
 		}
-		ren.fr.drawText(question, qPos, Renderer.textSize, Renderer.textColor, 1f);
 	}
 	
 	public override void drawHover(Renderer ren, Vector2d m){
@@ -91,10 +96,6 @@ class Field : Button{
 		
 		pos = cor - corner * offset;
 		
-		Vector2 size = new Vector2(text.Length * Renderer.textSize.X + 10f, Renderer.textSize.Y + 10f);
-		
-		size.X = Math.Max(size.X, this.size);
-		
 		if(corner.X == 1){
 			pos.X -= size.X;
 		}
@@ -113,14 +114,6 @@ class Field : Button{
 			pos.Y += offset.Y;
 		}
 		
-		textPos = new Vector2(pos.X + 5f, pos.Y - 5f);
-		
-		qPos = new Vector2(pos.X - question.Length * Renderer.textSize.X - 10f, pos.Y - 5f);
-		
 		box = new AABB(pos.Y, pos.Y - size.Y, pos.X, pos.X + size.X);
 	}
-}
-
-public enum WritingType{
-	Hex, Int, Float, String
 }

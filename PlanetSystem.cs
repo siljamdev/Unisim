@@ -33,7 +33,7 @@ class PlanetSystem{
 		float d = s * 4f;
 		
 		for(int i = 0; i < n; i++){
-			float c = random(r, 1000f, 1100f * i * i + 1300f);
+			float c = random(r, 1200f + 500f * i, 1150f * i * i + 2000f);
 			d += c;
 			float a = random(r, -0.24f * i * i + 2.9f * i + 3f, -2.7f * i * i + 35.7f * i + 4f);
 			p.addPlanet(a, d, new Color3((byte) (20 + r.Next(235)), (byte) (r.Next(210)), (byte) (r.Next(200))).ToString());
@@ -43,7 +43,7 @@ class PlanetSystem{
 			
 			if(i > 3 && r.Next(n - i) == 0){
 				int m = 1 + r.Next(3);
-				float e = 100f;
+				float e = 300f;
 				float g = (float) p.bodies[i + 1].radius;
 				for(int j = 0; j < m; j++){
 					float f = random(r, 20f * i + 100f, 100f * i + 1000f);
@@ -53,7 +53,7 @@ class PlanetSystem{
 					
 					p.setLastName(pname + " " + toRomanNumeral(j + 1));
 				}
-				d += 150f * a;
+				d += 180f * a;
 			}
 		}
 		
@@ -110,11 +110,11 @@ class PlanetSystem{
 		return addMoon(lastPlanet, radius, mass, distance, color);
 	}
 	
-	private static readonly string[] prefixes = { "Alpha", "Beta", "Gamma", "Delta", "Epsilon", "Zeta", "Eta", "Theta", "Iota", "Kappa" };
-    private static readonly string[] suffixes = { "Majoris", "Minoris", "Centauri", "Eridani", "Cygni", "Draconis", "Andromedae", "Aquarii", "Pegasi", "Serpentis" };
+	private static readonly string[] prefixes = { "Alpha", "Beta", "Gamma", "Delta", "Epsilon", "Zeta", "Eta", "Theta", "Iota", "Kappa", "Omega", "Septa", "Hikta" };
+    private static readonly string[] suffixes = { "Majoris", "Minoris", "Centauri", "Eridani", "Cygni", "Draconis", "Andromedae", "Aquarii", "Pegasi", "Serpentis", "Nexis", "Tulkis" };
 
     // Syllables to create original names
-    private static readonly string[] syllables = { "ael", "ion", "ara", "nus", "zor", "ith", "mir", "phe", "rax", "tor", "xan", "cel", "ven", "tis", "ryn", "ora" };
+    private static readonly string[] syllables = { "ael", "ion", "ara", "nus", "zor", "ith", "mir", "phe", "rax", "tor", "xan", "cel", "ven", "tis", "ryn", "ora", "ban", "nam", "iet" };
 
     private static string generateStarName(Random r){
         string name;
@@ -146,10 +146,10 @@ class PlanetSystem{
         return name;
     }
 	
-	private static readonly string[] descriptors = { "Prime", "Nova", "Minor", "Major", "Alpha", "Beta", "Gamma", "Zeta" };
+	private static readonly string[] descriptors = { "Prime", "Nova", "Minor", "Major", "Alpha", "Beta", "Gamma", "Zeta", "First", "Far" };
 
     // Syllables for creating unique planet names
-    private static readonly string[] psyllables = { "vul", "tora", "mel", "dra", "zan", "nor", "phy", "sel", "kur", "lyra", "os", "ina", "quar", "ven", "tari", "lum" };
+    private static readonly string[] psyllables = { "vul", "tora", "mel", "dra", "zan", "nor", "phy", "sel", "kur", "lyra", "os", "ina", "quar", "ven", "tari", "lum", "kep", "nim", "chus", "pol", "sec", "lum" };
 
     private static string generatePlanetName(Random r)
     {

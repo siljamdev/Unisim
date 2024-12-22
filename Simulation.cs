@@ -12,28 +12,29 @@ class Simulation{
 	
 	public DeltaHelper th{get; private set;}
 	
-	public float targetTPS;
+	public float targetTPS = 100f;
 	public bool runAtMax;
 	
-	public int tickCounter;
+	public int tickCounter{get; private set;}
 	
-	private const double elementalRepulsionContant = 2.34d;
-	private const double electricalConstant = 8.6d;
-	private const double weakConstant = 0.02d;
+	const double elementalRepulsionContant = 2.34d;
+	const double electricalConstant = 8.6d;
+	const double weakConstant = 0.02d;
+	
+	public bool changeForceMode;
 	
 	DrawBufferController dbc;
 	
-	public static TreeLog tl = new TreeLog();
+	public TimeTool tt;
 	
-	public TimeTool tt = new TimeTool(1000, "Add New Particles", "Reset Particles", "Calculate Gravity", "Calculate Charges 1", "Calculate Charges 2", "Calculate Weak", "Calculate Repulsion", "Update Velocity", "Find Collisions", "Resolve Collisions", "Check errors in Collisions", "Generate DrawBuffers");
-	
-	public Simulation(Particle[] par, float t, DrawBufferController d){
+	public Simulation(Particle[] par, DrawBufferController d){
 		dbc = d;
-		targetTPS = t;
 		particles = new List<Particle>();
 		particles.AddRange(par);
 		
 		particlesToAdd = new List<Particle>();
+		
+		tt = new TimeTool(1000, "Add New Particles", "Reset Particles", "Calculate Gravity", "Calculate Charges 1", "Calculate Charges 2", "Calculate Weak", "Calculate Repulsion", "Update Velocity", "Find Collisions", "Resolve Collisions", "Check errors in Collisions", "Generate DrawBuffers");
 		
 		//tick();
 	}
@@ -90,6 +91,11 @@ class Simulation{
 		
 		tickCounter++;
 		
+		if(changeForceMode){
+			Particle.singleForce = !Particle.singleForce;
+			changeForceMode = false;
+		}
+		
 		if(particlesToAdd.Count > 0){
 			particles.AddRange(particlesToAdd.ToArray());
 			particlesToAdd.Clear();
@@ -119,7 +125,7 @@ class Simulation{
 		
 		tt.catEnd();
 		
-		generate_();
+		generate();
 		
 		tt.catEnd();
 		
@@ -147,18 +153,11 @@ class Simulation{
 				
 				double charge = p1.charge * p2.charge;
 				
-				//mod = electricalConstant * ((p1.charge * p2.charge) / d);
 				mod = electricalConstant * charge / d;
 				
 				tt.catEnd(3);
 				
 				mod += (8d * Math.Abs(charge) * radSum * radSum * radSum) / (radSum * d * dist);
-				
-				/* if(dist < 2.0 * radSum){
-					if(mod < 0d){
-						mod *= -0.8d;
-					}
-				} */
 				
 				p1.addForce(-dir, mod);
 				p2.addForce(dir, mod);
@@ -168,7 +167,8 @@ class Simulation{
 			
 			double w = p1.weak + p2.weak;
 			
-			if(w > 1d && dist > (33d * w)){	
+			if(p1.weak > 0d && p2.weak > 0d && dist > (33d * w)){
+				//Weak worce
 				double q = dist - 16d * w;
 				q = q * q;
 				mod = (-q / (dist - 32d * w)) + (64d + weakConstant) * w;
@@ -183,11 +183,13 @@ class Simulation{
 		}else{
 			//Elemental repulsion
 			
-			double mod = (radSum - dist) * (radSum - dist);
+			double mod = elementalRepulsionContant * (radSum - dist) * (radSum - dist);
 			double totalMass = p1.mass + p2.mass;
 			
-			p1.addForce(Vector2d.Normalize(p1.position - p2.position), elementalRepulsionContant * mod * (p2.mass / totalMass));
-			p2.addForce(Vector2d.Normalize(p2.position - p1.position), elementalRepulsionContant * mod * (p1.mass / totalMass));
+			Vector2d dir = Vector2d.Normalize(p1.position - p2.position);
+			
+			p1.addForce(dir, mod * (p2.mass / totalMass));
+			p2.addForce(-dir, mod * (p1.mass / totalMass));
 			
 			tt.catEnd(6);
 		}
@@ -265,34 +267,26 @@ class Simulation{
 			tt.catEnd(9);			
 		}
 		
-		/* for(int i = 0; i < particles.Count - 1; i++){
-			for(int j = i + 1; j < particles.Count; j++){
-				if(Vector2d.Distance((particles[i].position + particles[i].velocity), (particles[j].position + particles[j].velocity)) < (particles[i].radius + particles[j].radius)){
-					Console.WriteLine(i + " & " + j);
-					stopFlag = true;
-				}
-			}
-		} */
-		
-		List<Vector2d> predictedPositions = new List<Vector2d>();
+		//Uncomment this for checking for errors and stopping the simultion
+		/* List<Vector2d> predictedPositions = new List<Vector2d>(particles.Count);
 		for(int i = 0; i < particles.Count; i++){
 			predictedPositions.Add(particles[i].position + particles[i].velocity);
 		}
 		
-		for (int i = 0; i < particles.Count - 1; i++) {
-			for (int j = i + 1; j < particles.Count; j++) {
+		for(int i = 0; i < particles.Count - 1; i++){
+			for(int j = i + 1; j < particles.Count; j++){
 				double dx = predictedPositions[i].X - predictedPositions[j].X;
 				double dy = predictedPositions[i].Y - predictedPositions[j].Y;
 				double distanceSquared = dx * dx + dy * dy;
 				double radiusSum = particles[i].radius + particles[j].radius;
 				double radiusSumSquared = radiusSum * radiusSum;
 		
-				if (distanceSquared < radiusSumSquared) {
+				if(distanceSquared < radiusSumSquared){
 					Console.WriteLine(i + " & " + j);
 					stopFlag = true;
 				}
 			}
-		}
+		} */
 		
 		//tt.catEnd();
 	}
@@ -307,7 +301,7 @@ class Simulation{
 		return particles[0];
 	}
 	
-	public Particle getParticleCursor(Vector2d cursor){
+	public Particle getParticleAtCursor(Vector2d cursor){
 		for(int i = 0; i < particles.Count; i++){
 			if(Vector2d.Distance(particles[i].position, cursor) < particles[i].radius){
 				return particles[i];
@@ -320,10 +314,10 @@ class Simulation{
 		if(isRunning){
 			return;
 		}
-		generate_();
+		generate();
 	}
 	
-	void generate_(){
+	void generate(){
 		float[] p = null;
 		float[] v = null;
 		float[] f = null;

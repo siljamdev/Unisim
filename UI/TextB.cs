@@ -14,12 +14,14 @@ class TextButton : Button{
 	
 	float size;
 	
+	public Color3 textColor;
+	public Color3 hoverTextColor;
 	public Color3 color;
 	public Color3 hoverColor;
 	
 	public string? description;
 	
-	public TextButton(Renderer r, string t, int cx, int cy, float ox, float oy, float xs, Color3 c) : base(r){
+	public TextButton(string t, int cx, int cy, float ox, float oy, float xs, Color3 c) : base(){
 		text = t;
 		
 		corner = new Vector2i(cx, cy);
@@ -29,45 +31,65 @@ class TextButton : Button{
 		
 		color = c;
 		hoverColor = new Color3((byte) (color.R * 1.2f), (byte) (color.G * 1.2f), color.B);
+		textColor = Renderer.textColor;
+		hoverTextColor = Renderer.selectedTextColor;
+	}
+	
+	public TextButton(string t, int cx, int cy, float ox, float oy, float xs, Color3 c, Color3 tc, Color3 hc) : base(){
+		text = t;
 		
-		updateBox();
+		corner = new Vector2i(cx, cy);
+		offset = new Vector2(ox, oy);
+		
+		size = xs;
+		
+		color = c;
+		hoverColor = new Color3((byte) (color.R * 1.2f), (byte) (color.G * 1.2f), color.B);
+		textColor = tc;
+		hoverTextColor = hc;
 	}
 	
 	public TextButton setDescription(string d){
 		description = d;
+		hasHover = true;
 		return this;
 	}
 	
-	public override void draw(Vector2d m){
-		Vector2 size = new Vector2(text.Length * ren.textSize.X + 10f, ren.textSize.Y + 10f);
+	public override void draw(Renderer ren, Vector2d m){
+		Vector2 size = new Vector2(text.Length * Renderer.textSize.X + 10f, Renderer.textSize.Y + 10f);
 		
 		size.X = Math.Max(size.X, this.size);
 		
 		if(box != null && box % m){
 			ren.ui.drawRect(pos, size, hoverColor, 1f);
-			ren.fr.drawText(text, textPos, ren.textSize, ren.textColor, 1f);
-			if(description != null){
-				onHover(m);
-			}
+			ren.fr.drawText(text, textPos, Renderer.textSize, hoverTextColor, 1f);
 		}else{
 			ren.ui.drawRect(pos, size, color, 1f);
-			ren.fr.drawText(text, textPos, ren.textSize, ren.textColor, 1f);
+			ren.fr.drawText(text, textPos, Renderer.textSize, textColor, 1f);
 		}
 	}
 	
-	void onHover(Vector2d m){
+	public override void drawHover(Renderer ren, Vector2d m){
 		Vector2 mouse = (Vector2) m;
-		ren.ui.drawRect(mouse.X, mouse.Y + ren.textSize.Y + 10f, description.Length * ren.textSize.X + 10f, ren.textSize.Y + 10f, ren.black, 0.3f);
-		ren.fr.drawText(description, mouse.X + 5f, mouse.Y + ren.textSize.Y + 5f, ren.textSize, ren.textColor);
+		
+		Vector2 size = new Vector2(description.Length * Renderer.textSize.X + 10f, Renderer.textSize.Y + 10f);
+		
+		if(mouse.X + size.X > ren.width / 2f){
+			ren.ui.drawRect(mouse.X - size.X, mouse.Y + Renderer.textSize.Y + 10f, size.X, size.Y, Renderer.black, 0.5f);
+			ren.fr.drawText(description, mouse.X - size.X + 5f, mouse.Y + Renderer.textSize.Y + 5f, Renderer.textSize, Renderer.textColor);
+		}else{
+			ren.ui.drawRect(mouse.X, mouse.Y + Renderer.textSize.Y + 10f, size.X, size.Y, Renderer.black, 0.5f);
+			ren.fr.drawText(description, mouse.X + 5f, mouse.Y + Renderer.textSize.Y + 5f, Renderer.textSize, Renderer.textColor);
+		}
 	}
 	
-	public override void updateBox(){
+	public override void updateBox(Renderer ren){
 		Vector2 dim = new Vector2(ren.width / 2f, ren.height / 2f);
 		Vector2 cor = corner * dim;
 		
 		pos = cor - corner * offset;
 		
-		Vector2 size = new Vector2(text.Length * ren.textSize.X + 10f, ren.textSize.Y + 10f);
+		Vector2 size = new Vector2(text.Length * Renderer.textSize.X + 10f, Renderer.textSize.Y + 10f);
 		
 		size.X = Math.Max(size.X, this.size);
 		

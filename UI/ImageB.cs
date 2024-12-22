@@ -17,7 +17,7 @@ class ImageButton : Button{
 	
 	public string? description;
 	
-	public ImageButton(Renderer r, string tn, int cx, int cy, float ox, float oy, float sx, float sy, Color3 c) : base(r){
+	public ImageButton(string tn, int cx, int cy, float ox, float oy, float sx, float sy, Color3 c) : base(){
 		textureName = tn;
 		
 		corner = new Vector2i(cx, cy);
@@ -26,30 +26,37 @@ class ImageButton : Button{
 		size = new Vector2(sx, sy);
 		
 		color = c;
-		
-		updateBox();
 	}
 	
 	public ImageButton setDescription(string d){
 		description = d;
+		hasHover = true;
 		return this;
 	}
 	
-	public override void draw(Vector2d m){		
-		ren.ui.draw(textureName, pos, size, color);
-		
-		if(box != null && box % m && description != null){
-			onHover(m);
+	public override void draw(Renderer ren, Vector2d m){
+		if(box != null && box % m){
+			ren.ui.draw(textureName, pos, size, Renderer.selectedTextColor);
+		}else{
+			ren.ui.draw(textureName, pos, size, color);
 		}
 	}
 	
-	void onHover(Vector2d m){
+	public override void drawHover(Renderer ren, Vector2d m){
 		Vector2 mouse = (Vector2) m;
-		ren.ui.drawRect(mouse.X, mouse.Y + ren.textSize.Y + 10f, description.Length * ren.textSize.X + 10f, ren.textSize.Y + 10f, ren.black, 0.3f);
-		ren.fr.drawText(description, mouse.X + 5f, mouse.Y + ren.textSize.Y + 5f, ren.textSize, ren.textColor);
+		
+		Vector2 size = new Vector2(description.Length * Renderer.textSize.X + 10f, Renderer.textSize.Y + 10f);
+		
+		if(mouse.X + size.X > ren.width / 2f){
+			ren.ui.drawRect(mouse.X - size.X, mouse.Y + Renderer.textSize.Y + 10f, size.X, size.Y, Renderer.black, 0.5f);
+			ren.fr.drawText(description, mouse.X - size.X + 5f, mouse.Y + Renderer.textSize.Y + 5f, Renderer.textSize, Renderer.textColor);
+		}else{
+			ren.ui.drawRect(mouse.X, mouse.Y + Renderer.textSize.Y + 10f, size.X, size.Y, Renderer.black, 0.5f);
+			ren.fr.drawText(description, mouse.X + 5f, mouse.Y + Renderer.textSize.Y + 5f, Renderer.textSize, Renderer.textColor);
+		}
 	}
 	
-	public override void updateBox(){
+	public override void updateBox(Renderer ren){
 		Vector2 dim = new Vector2(ren.width / 2f, ren.height / 2f);
 		Vector2 cor = corner * dim;
 		

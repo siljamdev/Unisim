@@ -6,6 +6,7 @@ using AshLib;
 class Particle{
 	public Vector2d position{get; private set;}
 	public Vector2d velocity{get; private set;}
+	
 	Vector2d? nextVelocity;
 	List<Vector2d> forces;
 	Vector2d force;
@@ -22,8 +23,9 @@ class Particle{
 	
 	bool firstTick;
 	
-	const bool singleForce = true;
+	public static bool singleForce = true;
 	const double elasticConstant = 0.9d;
+	
 	public const int drawDataSize = 6;
 	
 	public Particle(double rad, double m, double q, double w, Color3 col){
@@ -36,9 +38,6 @@ class Particle{
 		nextVelocity = null;
 		
 		forces = new List<Vector2d>();
-		if(singleForce){
-			forces.Add(new Vector2d(0d, 0d));
-		}
 		trajectory = new Trajectory(position, velocity, radius);
 	}
 	
@@ -109,19 +108,6 @@ class Particle{
 	
 	public Particle addVelocity(double x, double y){
 		velocity += new Vector2d(x, y);
-		return this;
-	}
-	
-	public Particle addRadius(double r){
-		if(radius + r <= 0){
-			return this;
-		}
-		radius += r;
-		return this;
-	}
-	
-	public Particle setMass(double m){
-		mass = m;
 		return this;
 	}
 	

@@ -16,7 +16,7 @@ class Camera{
 	public Vector2d position;
 	public Vector2d mouseLastPos{get; private set;}
 	
-	public Vector2d movement;
+	Vector2d movement;
 	
 	public Vector2d mouseWorldPos{get{
 		Vector2d m = mouseLastPos;
@@ -51,16 +51,6 @@ class Camera{
 		notifyRenderer();
 	}
 	
-	public Camera(Renderer r, Particle f){
-		ren = r;
-		follow = f;
-		position = -follow.position;
-		targetZoom = 1.0f;
-		zoom = 1.0f;
-		updateMatrix();
-		notifyRenderer();
-	}
-	
 	void updateMatrix(){
 		if(follow != null){
 			position = -follow.position;
@@ -83,16 +73,16 @@ class Camera{
 		
 		if(follow == null){
 			ren.setCornerInfo("Camera free");
-			ren.main.buttons[0].active = false;
+			ren.mainScreen.buttons[0].active = false;
 		}else{
 			if(follow.name != null){
 				ren.setCornerInfo("Camera following " + follow.name);
-				((ImageButton)ren.main.buttons[0]).setDescription("Following " + follow.name);
+				((ImageButton)ren.mainScreen.buttons[0]).setDescription("Following " + follow.name);
 			}else{
 				ren.setCornerInfo("Camera following particle");
-				((ImageButton)ren.main.buttons[0]).setDescription("Following particle");
+				((ImageButton)ren.mainScreen.buttons[0]).setDescription("Following particle");
 			}
-			ren.main.buttons[0].active = true;
+			ren.mainScreen.buttons[0].active = true;
 		}
 	}
 	

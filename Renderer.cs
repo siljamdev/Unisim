@@ -13,18 +13,27 @@ class Renderer{
 	public int height{get; private set;}
 	
 	//readonly Color4 backgroundColor = new Color4(0.1f, 0.1f, 0.3f, 1.0f); //og color
-	readonly Color4 backgroundColor = new Color4(0.06f, 0.06f, 0.2f, 1.0f);
-	public readonly Vector2 textSize = new Vector2(15f, 18f);
+	static readonly Color4 backgroundColor = new Color4(0.03f, 0.03f, 0.1f, 1.0f);
+	public static readonly Vector2 textSize = new Vector2(15f, 18f);
 	
-	public readonly float separation = 40f;
-	public readonly float fSeparation = 30f;
+	public const float separation = 40f;
+	public const float fieldSeparation = 30f;
 	
-	public readonly Color3 textColor = new Color3("EFEFEF");
-	public readonly Color3 black = new Color3("000000");
+	public static readonly Color3 textColor = new Color3("EFEFEF");
+	public static readonly Color3 selectedTextColor = new Color3("FFFF8F");
+	public static readonly Color3 titleTextColor = new Color3("DFDFFF");
+	public static readonly Color3 fieldTextColor = new Color3("D6D6D6");
+	public static readonly Color3 buttonColor = new Color3("555577");
+	public static readonly Color3 greenButtonColor = new Color3("557755");
+	public static readonly Color3 redButtonColor = new Color3("775555");
+	public static readonly Color3 redTextColor = new Color3("FF8888");
+	public static readonly Color3 black = new Color3("000000");
+	public static readonly Color3 fieldColor = new Color3("222222");
+	public static readonly Color3 fieldSelectedColor = new Color3("505050");
 	
-	public Camera cam;
-	public UIRenderer ui;
-	public FontRenderer fr;
+	public Camera cam{get; private set;}
+	public UIRenderer ui{get; private set;}
+	public FontRenderer fr{get; private set;}
 	
 	Simulation sim;
 	Simulator sor;
@@ -34,7 +43,7 @@ class Renderer{
 	
 	public Matrix4 projection{get; private set;}
 	
-	public List<RenderMode> modes;
+	public List<RenderMode> modes{get; private set;}
 	
 	public DrawBufferController dbc;
 	
@@ -43,14 +52,10 @@ class Renderer{
 	public Particle ghost;
 	public bool ghostLocked;
 	
-	public Screen main;
-	public Screen current;
+	public Screen mainScreen;
+	public Screen currentScreen;
 	
-	public Renderer(Simulator st, Simulation s, DrawBufferController d) : this(st, s, null, d){
-		
-	}
-	
-	public Renderer(Simulator st, Simulation s, Particle pt, DrawBufferController d){
+	public Renderer(Simulator st, Simulation s, DrawBufferController d){
 		sim = s;
 		sor = st;
 		sw = new Stopwatch();
@@ -78,11 +83,7 @@ class Renderer{
 		
 		//other utilities
 		
-		if(pt != null){
-			cam = new Camera(this, pt);
-		}else{
-			cam = new Camera(this);
-		}
+		cam = new Camera(this);
 		
 		float[] vertices = { //y is in -1 so starting pos of the text is in the left upper corner
 			1f, -1f,
@@ -106,6 +107,7 @@ class Renderer{
 		ui.addTexture("add", Texture2D.generateFromAssembly("addButton.png", TextureParams.Default));
 		ui.addTexture("up", Texture2D.generateFromAssembly("increaseButton.png", TextureParams.Default));
 		ui.addTexture("down", Texture2D.generateFromAssembly("downButton.png", TextureParams.Default));
+		ui.addTexture("tick", Texture2D.generateFromAssembly("tick.png", TextureParams.Default));
 		
 		//Activate modes
 		modes[0].toggleActivation();
@@ -120,40 +122,25 @@ class Renderer{
 		GL.Enable(EnableCap.Blend);
 		GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
 		
-		main = new Screen(this, new ImageButton(this, "camera", -1, -1, 0f, 0f, 30f, 30f, textColor).setAction(camFree),
-								new ImageButton(this, "stop", 1, -1, 0f, 0f, 30f, 30f, new Color3("FFBBBB")).setAction(pause),
-								new ImageButton(this, "add", -1, -1, 30f, 0f, 30f, 30f, textColor).setDescription("Add new particle").setAction(sor.addParticleScreen),
-								new ImageButton(this, "up", 1, -1, 30f, 0f, 30f, 30f, textColor).setDescription("+").setAction(tUp),
-								new ImageButton(this, "down", 1, -1, 60f, 0f, 30f, 30f, textColor).setDescription("-").setAction(tDown));
+		mainScreen = new Screen(new ImageButton("camera", -1, -1, 0f, 0f, 30f, 30f, textColor).setAction(camFree),
+								new ImageButton("stop", 1, -1, 0f, 0f, 30f, 30f, new Color3("FFBBBB")).setAction(sor.togglePause),
+								new ImageButton("add", -1, -1, 30f, 0f, 30f, 30f, textColor).setDescription("Add new particle").setAction(sor.setAddParticleScreen).setQuickAction(sor.addParticle),
+								new ImageButton("up", 1, -1, 30f, 0f, 30f, 30f, textColor).setDescription("+").setAction(sor.tickRateUp),
+								new ImageButton("down", 1, -1, 60f, 0f, 30f, 30f, textColor).setDescription("-").setAction(sor.tickRateDown));
 		
-		main.buttons[0].active = false;
+		mainScreen.buttons[0].active = false;
+		
+		mainScreen.updateProj(this);
 	}
 	
 	void camFree(){
 		cam.setFollow(null);
 	}
 	
-	void tUp(){
-		sim.targetTPS *= 1.3f;
-		setCornerInfo(sim.targetTPS.ToString("F0"));
-	}
-	
-	void tDown(){
-		sim.targetTPS /= 1.3f;
-		setCornerInfo(sim.targetTPS.ToString("F0"));
-	}
-	
-	public void pause(){
-		if(sim.isRunning){
-			sim.stop();
-			setCornerInfo("Simulation paused");
-			((ImageButton)main.buttons[1]).textureName = "stop";
-			((ImageButton)main.buttons[1]).color = new Color3("FFBBBB");
-		}else{
-			Task.Run(() => sim.run());
-			setCornerInfo("Simulation running");
-			((ImageButton)main.buttons[1]).textureName = "play";
-			((ImageButton)main.buttons[1]).color = new Color3("BBBBFF");
+	public void setScreen(Screen s){
+		currentScreen = s;
+		if(currentScreen != null){
+			currentScreen.updateProj(this);
 		}
 	}
 	
@@ -174,10 +161,10 @@ class Renderer{
 		ui.setProjection(projection);
 		fr.setProjection(projection);
 		
-		main.updateProj();
+		mainScreen.updateProj(this);
 		
-		if(current != null){
-			current.updateProj();
+		if(currentScreen != null){
+			currentScreen.updateProj(this);
 		}
 	}
 	
@@ -187,7 +174,7 @@ class Renderer{
 		}
 	}
 	
-	public void toggleDebugMode(){
+	public void toggleAdvancedMode(){
 		advancedMode = !advancedMode;
 		
 		if(advancedMode){
@@ -207,8 +194,6 @@ class Renderer{
 			rm.draw();
 		}
 		
-		main.draw();
-		
 		if(advancedMode){
 			string s = "FPS: " + Simulator.dh.stableFps.ToString("F0");
 			fr.drawText(s, width/2f - s.Length * textSize.X, (height/2f), textSize, textColor);
@@ -216,7 +201,7 @@ class Renderer{
 			int decimals = cam.zoomFactor <= 0 ? 0 : Math.Clamp((int)(cam.zoomFactor / 10), 0, 3);
 			string format = "F" + decimals;
 			
-			s = "(" + cam.position.X.ToString(format) + ", " + cam.position.Y.ToString(format) + "\\" + cam.zoomFactor.ToString() + ")";
+			s = "(" + (-cam.position.X).ToString(format) + ", " + (-cam.position.Y).ToString(format) + "\\" + cam.zoomFactor.ToString() + ")";
 			fr.drawText(s, width/2f - s.Length * textSize.X, (height/2f) - textSize.Y, textSize, textColor);
 			
 			s = "Cursor: " + cam.mouseWorldPos.ToString(format);
@@ -235,7 +220,6 @@ class Renderer{
 		}
 		
 		if(sim.isRunning){
-			//ui.draw("play", width/2f - 30f, -height/2f + 30f, 30f, new Color3("BBBBFF"));
 			fr.drawText("TPS: " + sim.th.stableFps.ToString("F0"), -width/2f, (height/2f), textSize, textColor);
 		}
 		
@@ -252,9 +236,13 @@ class Renderer{
 			}
 		}
 		
-		if(current != null){
+		if(currentScreen != null){
+			mainScreen.draw(this, false);
+			
 			ui.drawRect(-width/2f, height/2f, width, height, black, 0.6f);
-			current.draw();
+			currentScreen.draw(this, true);
+		}else{
+			mainScreen.draw(this, true);
 		}
 	}
 }

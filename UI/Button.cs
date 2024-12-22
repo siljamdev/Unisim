@@ -6,13 +6,13 @@ abstract class Button{
 	public AABB box{get; protected set;}
 	
 	public Action? action;
-	
-	protected Renderer ren;
+	public Action? quickAction;
 	
 	public bool active;
 	
-	public Button(Renderer r){
-		ren = r;
+	public bool hasHover;
+	
+	public Button(){
 		active = true;
 	}
 	
@@ -21,7 +21,14 @@ abstract class Button{
 		return this;
 	}
 	
-	abstract public void draw(Vector2d m);
+	public Button setQuickAction(Action? a){
+		quickAction = a;
+		return this;
+	}
 	
-	abstract public void updateBox();
+	abstract public void draw(Renderer ren, Vector2d m);
+	
+	abstract public void drawHover(Renderer ren, Vector2d m);
+	
+	abstract public void updateBox(Renderer ren);
 }
