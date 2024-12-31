@@ -141,7 +141,7 @@ class Simulator : GameWindow{
 										
 		infoScreen = new Screen(new Text("Info", 0, 1, 0f, 20f, Renderer.titleTextColor),
 										new Text("Unisim, created by Dumbelfo", 0, 1, 0f, 3f * Renderer.textSize.Y),
-										new Text("Version 1.1.0", 0, 1, 0f, 4f * Renderer.textSize.Y),
+										new Text("Version 1.1.1", 0, 1, 0f, 4f * Renderer.textSize.Y),
 										new Log(20f, 20f, 6f * Renderer.textSize.Y, "Particle simulator, aiming to simulate both planet systems and elemental particles"),
 										new TextButton("GitHub", 0, -1, -200f, 3f * Renderer.separation, 190f, Renderer.buttonColor).setAction(github),
 										new TextButton("Desmos", 0, -1, 0f, 3f * Renderer.separation, 190f, Renderer.buttonColor).setDescription("Graph showing forces between two particles").setAction(desmos),
