@@ -64,6 +64,11 @@ class Camera{
 		ren.updateView(view);
 	}
 	
+	public void updateForce(){
+		updateMatrix();
+		notifyRenderer();
+	}
+	
 	public void setFollow(Particle p){
 		if(follow == null && p == null){
 			return;

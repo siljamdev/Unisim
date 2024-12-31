@@ -193,8 +193,11 @@ class Simulator : GameWindow{
 			return;
 		}
 		
-		sim.reset(p);
 		ren.cam.setFollow(null);
+		ren.cam.position = new Vector2d(0d, 0d);
+		ren.cam.updateForce();
+		
+		sim.reset(p);
 	}
 	
 	void setEmpty(){
