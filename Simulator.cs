@@ -404,7 +404,7 @@ class Simulator : GameWindow{
 	}
 	
 	void github(){
-		Process.Start(new ProcessStartInfo("https://github.com/Dumbelfo08/Unisim"){UseShellExecute = true});
+		Process.Start(new ProcessStartInfo("https://github.com/siljamdev/Unisim"){UseShellExecute = true});
 	}
 	
 	void desmos(){

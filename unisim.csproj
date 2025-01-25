@@ -7,12 +7,15 @@
     <Nullable>enable</Nullable>
     
     <Version>1.1.1</Version>
-    <Authors>Dumbelfo</Authors>
+    <Authors>siljam</Authors>
     <Company>AshProject</Company>
     <PackageDescription>Particle simulation!</PackageDescription>
-	<RepositoryUrl>https://github.com/Dumbelfo08/Unisim</RepositoryUrl>
+	<RepositoryUrl>https://github.com/siljamdev/Unisim</RepositoryUrl>
 	
 	<ApplicationIcon>res/icon.ico</ApplicationIcon>
+	
+	<PublishSingleFile>true</PublishSingleFile>
+	<IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
   </PropertyGroup>
 
   <ItemGroup>
