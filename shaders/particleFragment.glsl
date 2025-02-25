@@ -6,8 +6,6 @@ in vec3 col;
 in vec2 FragPos;
 in float rad;
 
-uniform float zoom;
-
 void main()
 {
 	if(length(FragPos) > 1.0){

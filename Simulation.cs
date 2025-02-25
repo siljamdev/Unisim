@@ -1,11 +1,12 @@
 using System;
 using OpenTK;
 using OpenTK.Mathematics;
-using AshLib;
+using AshLib.Time;
 
 class Simulation{
 	List<Particle> particles;
 	List<Particle> particlesToAdd;
+	List<Particle> particlesToRemove;
 	
 	public bool isRunning{get; private set;}
 	bool stopFlag;
@@ -21,11 +22,11 @@ class Simulation{
 	const double electricalConstant = 8.6d;
 	const double weakConstant = 0.02d;
 	
+	public static int maxParticles = 1000;
+	
 	public bool changeForceMode;
 	
 	DrawBufferController dbc;
-	
-	public TimeTool tt;
 	
 	public Simulation(Particle[] par, DrawBufferController d){
 		dbc = d;
@@ -33,8 +34,9 @@ class Simulation{
 		particles.AddRange(par);
 		
 		particlesToAdd = new List<Particle>();
+		particlesToRemove = new List<Particle>();
 		
-		tt = new TimeTool(1000, "Add New Particles", "Reset Particles", "Calculate Gravity", "Calculate Charges 1", "Calculate Charges 2", "Calculate Weak", "Calculate Repulsion", "Update Velocity", "Find Collisions", "Resolve Collisions", "Check errors in Collisions", "Generate DrawBuffers");
+		//tt = new TimeTool(1000, "Add New Particles", "Reset Particles", "Calculate Gravity", "Calculate Charges 1", "Calculate Charges 2", "Calculate Weak", "Calculate Repulsion", "Update Velocity", "Find Collisions", "Resolve Collisions", "Check errors in Collisions", "Generate DrawBuffers");
 		
 		//tick();
 	}
@@ -43,18 +45,77 @@ class Simulation{
 		particles.Clear();
 		particles.AddRange(par);
 		
+		particlesToAdd.Clear();
+		particlesToRemove.Clear();
+		
 		tickCounter = 0;
-		tt = new TimeTool(1000, "Add New Particles", "Reset Particles", "Calculate Gravity", "Calculate Charges 1", "Calculate Charges 2", "Calculate Weak", "Calculate Repulsion", "Update Velocity", "Find Collisions", "Resolve Collisions", "Check errors in Collisions", "Generate DrawBuffers");
+		//tt = new TimeTool(1000, "Add New Particles", "Reset Particles", "Calculate Gravity", "Calculate Charges 1", "Calculate Charges 2", "Calculate Weak", "Calculate Repulsion", "Update Velocity", "Find Collisions", "Resolve Collisions", "Check errors in Collisions", "Generate DrawBuffers");
 		
 		tick();
 	}
 	
+	public static void setMaxParticles(int m){
+		maxParticles = m;
+		RenderMode.maxParticles = m;
+	}
+	
 	public void addParticle(Particle p){
+		if(particles.Count >= maxParticles){
+			return;
+		}
 		if(!isRunning){
 			particles.Add(p);
+			generate();
 		}else{
 			particlesToAdd.Add(p);
 		}
+	}
+	
+	public void addParticle(List<Particle> par){
+		if(particles.Count + par.Count > maxParticles){
+			return;
+		}
+		if(!isRunning){
+			particles.AddRange(par);
+			generate();
+		}else{
+			particlesToAdd.AddRange(par);
+		}
+	}
+	
+	public void removeParticle(Particle p){
+		if(!isRunning){
+			particles.Remove(p);
+			generate();
+		}else{
+			particlesToRemove.Add(p);
+		}
+	}
+	
+	public void removeParticle(List<Particle> par){
+		if(!isRunning){
+			foreach(Particle p in par){
+				particles.Remove(p);
+			}
+			generate();
+		}else{
+			particlesToRemove.AddRange(par);
+		}
+	}
+	
+	public List<Particle> getParticlesForSaving(){
+		List<Particle> par = particles.ToList();
+		par.AddRange(particlesToAdd);
+		
+		foreach(Particle p in particlesToRemove){
+			par.Remove(p);
+		}
+		
+		return par;
+	}
+	
+	public int numberOfParticles(){
+		return particles.Count;
 	}
 	
 	public async Task run(){
@@ -86,9 +147,7 @@ class Simulation{
 		stopFlag = true;
 	}
 	
-	public void tick(){
-		tt.tickStart();
-		
+	public void tick(){		
 		tickCounter++;
 		
 		if(changeForceMode){
@@ -101,13 +160,16 @@ class Simulation{
 			particlesToAdd.Clear();
 		}
 		
-		tt.catEnd();
+		if(particlesToRemove.Count > 0){
+			foreach(Particle p in particlesToRemove){
+				particles.Remove(p);
+			}
+			particlesToRemove.Clear();
+		}
 		
 		for(int i = 0; i < particles.Count; i++){
 			particles[i].reset();
 		}
-		
-		tt.catEnd();
 		
 		for(int i = 0; i < particles.Count; i++){
 			for(int j = i + 1; j < particles.Count; j++){
@@ -119,17 +181,9 @@ class Simulation{
 			particles[i].updateVelocity();
 		}
 		
-		tt.catEnd(7);
-		
 		doCollisions();
 		
-		tt.catEnd();
-		
 		generate();
-		
-		tt.catEnd();
-		
-		tt.tickEnd();
 	}
 	
 	void computeForces(Particle p1, Particle p2){
@@ -146,8 +200,6 @@ class Simulation{
 			p1.addForce(dir, mod);
 			p2.addForce(-dir, mod);
 			
-			tt.catEnd(2);
-			
 			if(p1.charge != 0d && p2.charge != 0d){
 				//Electrical force
 				
@@ -155,14 +207,10 @@ class Simulation{
 				
 				mod = electricalConstant * charge / d;
 				
-				tt.catEnd(3);
-				
 				mod += (8d * Math.Abs(charge) * radSum * radSum * radSum) / (radSum * d * dist);
 				
 				p1.addForce(-dir, mod);
 				p2.addForce(dir, mod);
-				
-				tt.catEnd(4);
 			}
 			
 			double w = p1.weak + p2.weak;
@@ -176,9 +224,7 @@ class Simulation{
 				if(mod > 0d){
 					p1.addForce(dir, mod);
 					p2.addForce(-dir, mod);
-				}				
-				
-				tt.catEnd(5);
+				}
 			}
 		}else{
 			//Elemental repulsion
@@ -190,8 +236,6 @@ class Simulation{
 			
 			p1.addForce(dir, mod * (p2.mass / totalMass));
 			p2.addForce(-dir, mod * (p1.mass / totalMass));
-			
-			tt.catEnd(6);
 		}
 	}
 	
@@ -209,8 +253,6 @@ class Simulation{
 			}
 		}
 		
-		tt.catEnd(8);
-		
 		if(collisionsFound.Count > 0){
 			collisionsFound.Sort((a, b) => a.Item1.t.CompareTo(b.Item1.t));
 			
@@ -223,8 +265,6 @@ class Simulation{
 			.Where(c => c.Item2 != pendingA && c.Item2 != pendingB && c.Item3 != pendingA && c.Item3 != pendingB)
 			.ToList();
 		}
-		
-		tt.catEnd(9);
 		
 		while((pendingA != null && pendingB != null) || collisionsFound.Count > 1){
 			
@@ -246,8 +286,6 @@ class Simulation{
 				}
 			}
 			
-			tt.catEnd(8);
-			
 			pendingA = null;
 			pendingB = null;
 			
@@ -262,9 +300,7 @@ class Simulation{
 				collisionsFound = collisionsFound
 				.Where(c => c.Item2 != pendingA && c.Item2 != pendingB && c.Item3 != pendingA && c.Item3 != pendingB)
 				.ToList();
-			}
-			
-			tt.catEnd(9);			
+			}			
 		}
 		
 		//Uncomment this for checking for errors and stopping the simultion
@@ -287,8 +323,18 @@ class Simulation{
 				}
 			}
 		} */
+	}
+	
+	public List<Particle> getParticlesInSelection(AABB sel){
+		List<Particle> par = new List<Particle>();
 		
-		//tt.catEnd();
+		foreach(Particle p in particles){
+			if(sel % p.position){
+				par.Add(p);
+			}
+		}
+		
+		return par;
 	}
 	
 	public Particle getNextParticle(Particle p){
@@ -299,6 +345,16 @@ class Simulation{
 			return particles[u+1];
 		}
 		return particles[0];
+	}
+	
+	public Particle getPreviousParticle(Particle p){
+		int u = particles.IndexOf(p);
+		if(u != -1 && u < 1){
+			return null;
+		}else if(u != -1){
+			return particles[u-1];
+		}
+		return particles[particles.Count - 1];
 	}
 	
 	public Particle getParticleAtCursor(Vector2d cursor){

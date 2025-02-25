@@ -10,6 +10,7 @@ class PointRenderMode : RenderMode{
 	
 	public PointRenderMode(Renderer r, Simulation s, Mesh m) : base(r, s){
 		shader = Shader.generateFromAssembly("point");
+		shader.setFloat("pointSize", 3.0f);
 		
 		mesh = m;
 		
@@ -29,5 +30,9 @@ class PointRenderMode : RenderMode{
 		shader.use();
 		
 		mesh.draw();
+	}
+	
+	public void setPointSize(float f){
+		shader.setFloat("pointSize", f);
 	}
 }

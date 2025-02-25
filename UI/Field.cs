@@ -122,5 +122,5 @@ class Field : Button{
 }
 
 public enum WritingType{
-	Hex, Int, Float, String
+	Hex, Int, Float, FloatPositive, String
 }

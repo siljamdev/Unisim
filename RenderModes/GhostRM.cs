@@ -17,17 +17,8 @@ class GhostRenderMode : RenderMode{
 		lineShader = h;
 		ghostShader = Shader.generateFromAssembly("ghost");
 		
-		float[] vertices = { //Just the full screen will be
-			-1f, -1f,
-			-1f, 1f,
-			1f, -1f,
-			1f,  1f,
-			1f, -1f,
-			-1f, 1f
-		};
-		
-		ghostMesh = new Mesh("2", vertices, PrimitiveType.Triangles);
-		lineMesh = new Mesh("2", 2, PrimitiveType.Lines);
+		ghostMesh = new Mesh("213", maxParticles, PrimitiveType.Points);
+		lineMesh = new Mesh("2", 2 * maxParticles, PrimitiveType.Lines);
 		
 		priorityRequester = false;
 	}
@@ -35,6 +26,7 @@ class GhostRenderMode : RenderMode{
 	override protected void doUpdateView(Matrix4 m){
 		ghostShader.setMatrix4("view", m);
 		lineShader.setMatrix4("view", m);
+		ghostShader.setFloat("zoom", ren.cam.zoom);
 	}
 	
 	override protected void doUpdateProj(){
@@ -43,29 +35,45 @@ class GhostRenderMode : RenderMode{
 	}
 	
 	override protected void doDraw(){
-		if(ren.ghost == null){
+		if(ren.ghost == null || ren.ghost.Count == 0){
 			return;
 		}
 		
 		if(ren.ghostLocked){
 			ghostShader.use();
 			
-			ghostShader.setVector2("pos", (Vector2) ren.ghost.position);
-			ghostShader.setFloat("rad", (float) ren.ghost.radius);
-			ghostShader.setVector3("col", ren.ghost.color);
+			List<float> f = new List<float>();
+			
+			foreach(Particle p in ren.ghost){
+				f.AddRange(p.drawData());
+			}
+			
+			ghostMesh.addDynamicData(f.ToArray());
 			ghostMesh.draw();
 			
 			lineShader.use();
 			lineShader.setVector3("color", orange);
 			
-			lineMesh.addDynamicData(new float[]{(float) ren.ghost.position.X, (float) ren.ghost.position.Y, (float) (2.0 * ren.ghost.position.X - ren.cam.mouseWorldPos.X), (float) (2.0 * ren.ghost.position.Y - ren.cam.mouseWorldPos.Y)});
+			f.Clear();
+			foreach(Particle p in ren.ghost){
+				f.AddRange(new float[]{(float) p.position.X, (float) p.position.Y, (float) (p.position.X + (ren.ghostCenter.X - ren.cam.mouseWorldPos.X)), (float) (p.position.Y + (ren.ghostCenter.Y - ren.cam.mouseWorldPos.Y))});
+			}
+			
+			lineMesh.addDynamicData(f.ToArray());
 			lineMesh.draw();
 		}else{
 			ghostShader.use();
 			
-			ghostShader.setVector2("pos", (Vector2) ren.cam.mouseWorldPos);
-			ghostShader.setFloat("rad", (float) ren.ghost.radius);
-			ghostShader.setVector3("col", ren.ghost.color);
+			ren.ghostCenter = ren.cam.mouseWorldPos;
+			
+			List<float> f = new List<float>();
+			
+			foreach(Particle p in ren.ghost){
+				f.AddRange(new float[]{(float) (ren.ghostCenter.X + p.position.X), (float) (ren.ghostCenter.Y + p.position.Y), (float) p.radius, p.color.R/255f, p.color.G/255f, p.color.B/255f});
+			}
+			
+			ghostMesh.addDynamicData(f.ToArray());
+			
 			ghostMesh.draw();
 		}
 		

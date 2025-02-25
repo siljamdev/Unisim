@@ -326,6 +326,46 @@ class KeyBind{
 		return false;
 	}
 	
+	public static bool getFloatPositiveTyping(KeyboardState kbd, out char c){
+		if(kbd.IsKeyDown(Keys.Period)){
+			c = '.';
+			return true;
+		}else if(kbd.IsKeyDown(Keys.D0)){
+			c = '0';
+			return true;
+		}else if(kbd.IsKeyDown(Keys.D1)){
+			c = '1';
+			return true;
+		}else if(kbd.IsKeyDown(Keys.D2)){
+			c = '2';
+			return true;
+		}else if(kbd.IsKeyDown(Keys.D3)){
+			c = '3';
+			return true;
+		}else if(kbd.IsKeyDown(Keys.D4)){
+			c = '4';
+			return true;
+		}else if(kbd.IsKeyDown(Keys.D5)){
+			c = '5';
+			return true;
+		}else if(kbd.IsKeyDown(Keys.D6)){
+			c = '6';
+			return true;
+		}else if(kbd.IsKeyDown(Keys.D7)){
+			c = '7';
+			return true;
+		}else if(kbd.IsKeyDown(Keys.D8)){
+			c = '8';
+			return true;
+		}else if(kbd.IsKeyDown(Keys.D9)){
+			c = '9';
+			return true;
+		}
+		
+		c = ' ';
+		return false;
+	}
+	
 	public static bool getFloatTyping(KeyboardState kbd, out char c){
 		if(kbd.IsKeyDown(Keys.Period)){
 			c = '.';

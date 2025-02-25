@@ -9,16 +9,54 @@ class Screen{
 	public bool writing;
 	public int selected;
 	
+	public bool doScroll;
+	
+	public Action? closeAction;
+	
+	Text? errorText;
+	Log? scrollLog;
+	
 	public Screen(params Button[] b){
 		buttons = new List<Button>();
 		
 		buttons.AddRange(b);
 	}
 	
+	public Screen setCloseAction(Action a){
+		closeAction = a;
+		return this;
+	}
+	
 	public Screen setWriting(){
 		writing = true;
 		selected = -1;
 		return this;
+	}
+	
+	public Screen setScrollingLog(Log g){
+		buttons.Add(g);
+		doScroll = true;
+		scrollLog = g;
+		return this;
+	}
+	
+	public void scroll(Renderer ren, float f){
+		if(scrollLog != null){
+			scrollLog.scroll(ren, f);
+		}
+	}
+	
+	public Screen setErrorText(Text t){
+		buttons.Add(t);
+		errorText = t;
+		return this;
+	}
+	
+	public void showError(Renderer ren, string s){
+		if(errorText == null){
+			return;
+		}
+		errorText.setText(ren, s);
 	}
 	
 	public void draw(Renderer ren, bool doHover){

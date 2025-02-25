@@ -11,9 +11,9 @@ abstract class RenderMode{
 	protected DrawBuffer db;
 	protected bool priorityRequester;
 	
-	public bool active{get; private set;}
+	public bool active{get; protected set;}
 	
-	protected const int maxParticles = 1000;
+	public static int maxParticles = Simulation.maxParticles;
 	
 	public RenderMode(Renderer r, Simulation s){
 		ren = r;

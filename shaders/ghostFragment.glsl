@@ -3,8 +3,7 @@
 out vec4 FragColor;
 
 in vec2 FragPos;
-
-uniform vec3 col;
+in vec3 col;
 
 void main()
 {

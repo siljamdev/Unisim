@@ -13,7 +13,7 @@ class ForcesRenderMode : RenderMode{
 	public ForcesRenderMode(Renderer r, Simulation s, Shader h) : base(r, s){
 		shader = h;
 		
-		mesh = new Mesh("2", (maxParticles - 1) * maxParticles, PrimitiveType.Lines);
+		mesh = new Mesh("2", 5 * (maxParticles - 1) * maxParticles, PrimitiveType.Lines);
 		
 		db = dbc.forces;
 	}

@@ -7,6 +7,7 @@ class Log : Button{
 	public string[] text;
 	
 	float offset;
+	float scrollOffset;
 	Vector2 margin;
 	
 	public Log(float lm, float rm, float oy, params string[] t) : base(){
@@ -14,6 +15,15 @@ class Log : Button{
 		
 		margin = new Vector2(lm, rm);
 		offset = oy;
+	}
+	
+	public void scroll(Renderer ren, float f){
+		f = -f;
+		if(scrollOffset <= 0f && f < 0f){
+			return;
+		}
+		
+		scrollOffset += f * 10f;
 	}
 	
 	public override void draw(Renderer ren, Vector2d m){
@@ -24,7 +34,7 @@ class Log : Button{
 		for(int i = 0; i < text.Length; i++){
 			string[] lines = divideLines(text[i], maxChars);
 			for(int j = 0; j < lines.Length; j++){
-				ren.fr.drawText(lines[j], -ren.width / 2f + margin.X, ren.height / 2f - d, Renderer.textSize, Renderer.textColor);
+				ren.fr.drawText(lines[j], -ren.width / 2f + margin.X, ren.height / 2f - d + scrollOffset, Renderer.textSize, Renderer.textColor);
 				d += Renderer.textSize.Y;
 			}
 			d += Renderer.fieldSeparation - Renderer.textSize.Y;
@@ -36,7 +46,7 @@ class Log : Button{
 	}
 	
 	public override void updateBox(Renderer ren){
-		
+		scrollOffset = 0f;
 	}
 	
 	public static string[] divideLines(string input, int maxCharsPerLine)

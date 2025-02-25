@@ -13,7 +13,7 @@ class Renderer{
 	public int height{get; private set;}
 	
 	//readonly Color4 backgroundColor = new Color4(0.1f, 0.1f, 0.3f, 1.0f); //og color
-	static readonly Color4 backgroundColor = new Color4(0.03f, 0.03f, 0.1f, 1.0f);
+	Color4 backgroundColor = new Color4(0.03f, 0.03f, 0.1f, 1.0f); //(8, 8, 26) #08081A
 	public static readonly Vector2 textSize = new Vector2(15f, 18f);
 	
 	public const float separation = 40f;
@@ -49,8 +49,9 @@ class Renderer{
 	
 	bool advancedMode;
 	
-	public Particle ghost;
+	public List<Particle> ghost;
 	public bool ghostLocked;
+	public Vector2d ghostCenter;
 	
 	public Screen mainScreen;
 	public Screen currentScreen;
@@ -80,6 +81,7 @@ class Renderer{
 		modes.Add(new BoxesRenderMode(this, sim)); //5
 		modes.Add(new CollisionRenderMode(this, sim)); //6
 		modes.Add(new GhostRenderMode(this, sim, lineShader)); //7
+		modes.Add(new SquareRenderMode(this, sim)); //8
 		
 		//other utilities
 		
@@ -108,9 +110,18 @@ class Renderer{
 		ui.addTexture("up", Texture2D.generateFromAssembly("increaseButton.png", TextureParams.Default));
 		ui.addTexture("down", Texture2D.generateFromAssembly("downButton.png", TextureParams.Default));
 		ui.addTexture("tick", Texture2D.generateFromAssembly("tick.png", TextureParams.Default));
+		ui.addTexture("screenshot", Texture2D.generateFromAssembly("screenshotButton.png", TextureParams.Default));
+		ui.addTexture("max", Texture2D.generateFromAssembly("maxIcon.png", TextureParams.Default));
+		ui.addTexture("nomax", Texture2D.generateFromAssembly("nomaxIcon.png", TextureParams.Default));
+		ui.addTexture("tab", Texture2D.generateFromAssembly("tabButton.png", TextureParams.Default));
+		ui.addTexture("remove", Texture2D.generateFromAssembly("removeButton.png", TextureParams.Default));
+		ui.addTexture("duplicate", Texture2D.generateFromAssembly("copyButton.png", TextureParams.Default));
+		ui.addTexture("square", Texture2D.generateFromAssembly("selectionButton.png", TextureParams.Default));
+		ui.addTexture("save", Texture2D.generateFromAssembly("saveButton.png", TextureParams.Default));
+		ui.addTexture("load", Texture2D.generateFromAssembly("loadButton.png", TextureParams.Default));
 		
 		//Activate modes
-		modes[0].toggleActivation();
+		//modes[0].toggleActivation(); //Clouds
 		modes[1].toggleActivation();
 		modes[2].toggleActivation();
 		modes[7].toggleActivation();
@@ -124,11 +135,18 @@ class Renderer{
 		
 		mainScreen = new Screen(new ImageButton("camera", -1, -1, 0f, 0f, 30f, 30f, textColor).setAction(camFree),
 								new ImageButton("stop", 1, -1, 0f, 0f, 30f, 30f, new Color3("FFBBBB")).setAction(sor.togglePause),
-								new ImageButton("add", -1, -1, 30f, 0f, 30f, 30f, textColor).setDescription("Add new particle").setAction(sor.setAddParticleScreen).setQuickAction(sor.addParticle),
-								new ImageButton("up", 1, -1, 30f, 0f, 30f, 30f, textColor).setDescription("+").setAction(sor.tickRateUp),
-								new ImageButton("down", 1, -1, 60f, 0f, 30f, 30f, textColor).setDescription("-").setAction(sor.tickRateDown));
+								new ImageButton("add", 0, -1, -45f, 0f, 30f, 30f, textColor).setDescription("Add new particle").setAction(sor.setAddParticleScreen).setQuickAction(sor.addParticle),
+								new ImageButton("up", 1, -1, 35f, 0f, 30f, 30f, textColor).setDescription("+").setAction(sor.tickRateUp),
+								new ImageButton("down", 1, -1, 65f, 0f, 30f, 30f, textColor).setDescription("-").setAction(sor.tickRateDown),
+								new ImageButton("nomax", 1, -1, 100f, 0f, 30f, 30f, textColor).setDescription("Max tickrate").setAction(sor.toggleMaxTicks),
+								new ImageButton("remove", 0, -1, -15f, 0f, 30f, 30f, textColor).setDescription("Remove").setAction(sor.removeSelection),
+								new ImageButton("duplicate", 0, -1, 15f, 0f, 30f, 30f, textColor).setDescription("Duplicate").setAction(sor.duplicateSelection),
+								new ImageButton("square", 0, -1, 45f, 0f, 30f, 30f, textColor).setDescription("Square selection").setAction(sor.squareNextTick),
+								new ImageButton("tab", -1, -1, 30f, 0f, 30f, 30f, textColor).setDescription("Next particle").setAction(sor.followNext).setQuickAction(sor.followPrevious));
 		
 		mainScreen.buttons[0].active = false;
+		mainScreen.buttons[6].active = false;
+		mainScreen.buttons[7].active = false;
 		
 		mainScreen.updateProj(this);
 	}
@@ -137,7 +155,15 @@ class Renderer{
 		cam.setFollow(null);
 	}
 	
+	public void setBgColor(Color3 c){
+		backgroundColor = new Color4(c.R/255f, c.G/255f, c.B/255f, 1.0f);
+	}
+	
 	public void setScreen(Screen s){
+		sor.setGhost((List<Particle>) null);
+		if(currentScreen != null && currentScreen.closeAction != null){
+			currentScreen.closeAction();
+		}
 		currentScreen = s;
 		if(currentScreen != null){
 			currentScreen.updateProj(this);
@@ -206,6 +232,9 @@ class Renderer{
 			
 			s = "Cursor: " + cam.mouseWorldPos.ToString(format);
 			fr.drawText(s, width/2f - s.Length * textSize.X, (height/2f) - 2f * textSize.Y, textSize, textColor);
+			
+			s = sim.numberOfParticles() + " particles";
+			fr.drawText(s, -width/2f, (height/2f) - 3f * textSize.Y, textSize, textColor);
 			
 			if(cam.follow != null){
 				s = "Position: " + cam.follow.position.ToString(format);

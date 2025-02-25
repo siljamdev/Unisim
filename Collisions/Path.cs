@@ -105,6 +105,11 @@ class Path{
 			return false;
 		}
 		
+		/* if(Vector2d.Distance(a.getPos(a.tstart), a.getPos(b.tstart)) > r1 + r2 && Vector2d.Distance(a.getPos(a.tend), a.getPos(b.tend)) > r1 + r2){
+			outT = null;
+			return false;
+		} */
+		
 		if(Formule.getT(a.getFormule(), b.getFormule(), r1, r2, out double t) && !intersect(a, b, r1, r2) && a.containsT(t) && b.containsT(t)){
 			outT = new Collision(ta, tb, t, r1, r2);
 			return true;

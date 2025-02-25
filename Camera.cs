@@ -79,6 +79,8 @@ class Camera{
 		if(follow == null){
 			ren.setCornerInfo("Camera free");
 			ren.mainScreen.buttons[0].active = false;
+			ren.mainScreen.buttons[6].active = false;
+			ren.mainScreen.buttons[7].active = false;
 		}else{
 			if(follow.name != null){
 				ren.setCornerInfo("Camera following " + follow.name);
@@ -88,6 +90,8 @@ class Camera{
 				((ImageButton)ren.mainScreen.buttons[0]).setDescription("Following particle");
 			}
 			ren.mainScreen.buttons[0].active = true;
+			ren.mainScreen.buttons[6].active = true;
+			ren.mainScreen.buttons[7].active = true;
 		}
 	}
 	
@@ -128,7 +132,7 @@ class Camera{
 	public void endFrame(){
 		if(movement != Vector2d.Zero){
 			position += movement;
-			movement *= 0.8d;
+			movement *= Math.Exp(-12 * (Simulator.dh.deltaTime + 1.0/60.0));
 			
 			if(movement.Length < 0.001d){
 				movement = Vector2d.Zero;
@@ -151,6 +155,14 @@ class Camera{
 			startZoom = zoom;
 			targetZoom *= 1.2f;
 		}
+		sw = new Stopwatch();
+		sw.Start();
+	}
+	
+	public void resetZoom(){
+		zoomFactor = 0;
+		startZoom = zoom;
+		targetZoom = 1f;
 		sw = new Stopwatch();
 		sw.Start();
 	}

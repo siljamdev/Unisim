@@ -28,6 +28,10 @@ class Particle{
 	
 	public const int drawDataSize = 6;
 	
+	public Particle Clone(){
+		return new Particle(radius, mass, charge, weak, color).setName(name);
+	}
+	
 	public Particle(double rad, double m, double q, double w, Color3 col){
 		radius = rad;
 		color = col;

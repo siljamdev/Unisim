@@ -13,7 +13,7 @@ class VelocitiesRenderMode : RenderMode{
 	public VelocitiesRenderMode(Renderer r, Simulation s, Shader h) : base(r, s){
 		shader = h;
 		
-		mesh = new Mesh("2", 12 * maxParticles, PrimitiveType.Lines);
+		mesh = new Mesh("2", maxParticles * maxParticles, PrimitiveType.Lines);
 		
 		db = dbc.velocities;
 	}

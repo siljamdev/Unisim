@@ -114,7 +114,7 @@ class PlanetSystem{
     private static readonly string[] suffixes = { "Majoris", "Minoris", "Centauri", "Eridani", "Cygni", "Draconis", "Andromedae", "Aquarii", "Pegasi", "Serpentis", "Nexis", "Tulkis" };
 
     // Syllables to create original names
-    private static readonly string[] syllables = { "ael", "ion", "ara", "nus", "zor", "ith", "mir", "phe", "rax", "tor", "xan", "cel", "ven", "tis", "ryn", "ora", "ban", "nam", "iet" };
+    private static readonly string[] syllables = { "ael", "ion", "ara", "nus", "zor", "ith", "mir", "phe", "rax", "tor", "xan", "cel", "ven", "tis", "ryn", "ora", "ban", "nam", "iet", "onis" };
 
     private static string generateStarName(Random r){
         string name;
@@ -146,10 +146,10 @@ class PlanetSystem{
         return name;
     }
 	
-	private static readonly string[] descriptors = { "Prime", "Nova", "Minor", "Major", "Alpha", "Beta", "Gamma", "Zeta", "First", "Far" };
+	private static readonly string[] descriptors = { "Prime", "Nova", "Minor", "Major", "Alpha", "Beta", "Gamma", "Zeta", "First", "Far", "Delta" };
 
     // Syllables for creating unique planet names
-    private static readonly string[] psyllables = { "vul", "tora", "mel", "dra", "zan", "nor", "phy", "sel", "kur", "lyra", "os", "ina", "quar", "ven", "tari", "lum", "kep", "nim", "chus", "pol", "sec", "lum" };
+    private static readonly string[] psyllables = { "vul", "tora", "mel", "dra", "zan", "nor", "phy", "sel", "kur", "lyra", "os", "ina", "quar", "ven", "tari", "lum", "kep", "nim", "chus", "pol", "sec", "lum", "cus", "kom", "gol", "zont", "lim" };
 
     private static string generatePlanetName(Random r)
     {
