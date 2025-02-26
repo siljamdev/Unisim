@@ -89,6 +89,37 @@ class Path{
 		return t >= tstart && t <= tend;
 	}
 	
+	public static bool getT(Path a, WorldBorder wb, Trajectory ta, double r1, out Collision outT){
+		if(AABB.contained(a.box, wb.box)){
+			outT = null;
+			return false;
+		}
+		
+		/* if(Vector2d.Distance(a.getPos(a.tstart), a.getPos(b.tstart)) > r1 + r2 && Vector2d.Distance(a.getPos(a.tend), a.getPos(b.tend)) > r1 + r2){
+			outT = null;
+			return false;
+		} */
+		
+		Collision c = new Collision(null, null, 10d, -1d, -1d);
+		
+		for(int i = 0; i < 4; i++){
+			if(Formule.getT(a.getFormule(), wb, r1, i, out double t, out Vector2d n) && a.containsT(t) && !(a.startCollision != null && a.startCollision.isWithWB && Math.Abs(t - a.tstart) < 0.0000001d) && !(a.endCollision != null && a.endCollision.isWithWB && Math.Abs(t - a.tend) < 0.0000001d) && t < c.t){
+				c = new Collision(ta, wb, t, r1, n);
+			}
+		}
+		
+		Console.WriteLine();
+		
+		if(c.t != 10d){
+			outT = c;
+			return true;
+		}
+		
+		
+		outT = null;
+		return false;
+	}
+	
 	public static bool getT(Path a, Path b, Trajectory ta, Trajectory tb, double r1, double r2, out Collision outT){
 		if(!(a.tstart <= b.tend && a.tend >= b.tstart)){
 			outT = null;

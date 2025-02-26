@@ -33,7 +33,7 @@ partial class Simulator : GameWindow{
 										new Field("Weight of pharks:", "5", 0, 0, 180f, -3f * Renderer.fieldSeparation, 100f, 5, WritingType.Int),
 										new Text("Velocity type:", 0, 0, 0f, 2f * Renderer.fieldSeparation),
 										new CheckButton(true, 0, 0, 150f, 2f * Renderer.fieldSeparation, Renderer.textSize.Y + 10f, Renderer.textSize.Y + 10f, Renderer.buttonColor).setDescription("ON: ring OFF: random"),
-										new TextButton("Reset", 0, -1, 0f, 3.5f * Renderer.separation, 300f, Renderer.buttonColor).setAction(resetCustomRPF),
+										new TextButton("Reset", 0, -1, 0f, 3f * Renderer.separation, 300f, Renderer.buttonColor).setAction(resetCustomRPF),
 										new TextButton("Done", 0, -1, 0f, 2f * Renderer.separation, 300f, Renderer.greenButtonColor).setAction(setCustomRPF),
 										new TextButton("Close", 0, -1, 0f, 1f * Renderer.separation, 300f, Renderer.redButtonColor).setAction(closeCurrent)).setWriting()
 										.setErrorText(new Text("", 0, 1, 0f, 60f, Renderer.redTextColor));
@@ -122,17 +122,19 @@ partial class Simulator : GameWindow{
 														"You can save and load scenes with the buttons in the pause menu."));
 		
 		optionsScreen = new Screen(new Text("Options", 0, 1, 0f, 20f, Renderer.titleTextColor),
-										new Text("Clouds:", 0, 0, 0f, 3f * Renderer.separation),
-										new CheckButton(true, 0, 0, 80f, 3f * Renderer.separation, Renderer.textSize.Y + 10f, Renderer.textSize.Y + 10f, Renderer.buttonColor),
-										new Field("Dot size:", "3", 0, 0, 100f, 2f * Renderer.separation, 90f, 5, WritingType.FloatPositive),
-										new Field("Background color:", "08081A", 0, 0, 150f, 1f * Renderer.separation, 120f, 6, WritingType.Hex),
-										new Field("Max particles:", "1000", 0, 0, 140f, 0f, 100f, 5, WritingType.Int).setDescription("Might reduce performance"),
-										new Text("Vsync:", 0, 0, 0f, -1f * Renderer.separation),
-										new CheckButton(true, 0, 0, 80f, -1f * Renderer.separation, Renderer.textSize.Y + 10f, Renderer.textSize.Y + 10f, Renderer.buttonColor),
-										new Field("Targer framerate:", "144", 0, 0, 150f, -2f * Renderer.separation, 100f, 4, WritingType.Int).setDescription("Vsync overrites it"),
-										new TextButton("Reset", 0, -1, 0f, 2.5f * Renderer.separation, 300f, Renderer.buttonColor).setAction(resetConfig),
+										new Text("Clouds:", 0, 0, 0f, 4f * Renderer.separation),
+										new CheckButton(true, 0, 0, 80f, 4f * Renderer.separation, Renderer.textSize.Y + 10f, Renderer.textSize.Y + 10f, Renderer.buttonColor),
+										new Field("Dot size:", "3", 0, 0, 100f, 3f * Renderer.separation, 90f, 5, WritingType.FloatPositive),
+										new Field("Background color:", "08081A", 0, 0, 150f, 2f * Renderer.separation, 120f, 6, WritingType.Hex),
+										new Field("Max particles:", "1000", 0, 0, 140f, 1f * Renderer.separation, 100f, 5, WritingType.Int).setDescription("Might reduce performance"),
+										new Text("Vsync:", 0, 0, 0f, 0f),
+										new CheckButton(true, 0, 0, 80f, 0f, Renderer.textSize.Y + 10f, Renderer.textSize.Y + 10f, Renderer.buttonColor),
+										new Field("Targer framerate:", "144", 0, 0, 150f, -1f * Renderer.separation, 100f, 4, WritingType.Int).setDescription("Vsync overrites it"),
+										new Field("Border color:", "75D7FF", 0, 0, 150f, -2f * Renderer.separation, 120f, 6, WritingType.Hex),
+										new TextButton("Reset", 0, -1, 0f, 3f * Renderer.separation, 300f, Renderer.buttonColor).setAction(resetConfig),
+										new TextButton("Done", 0, -1, 0f, 2f * Renderer.separation, 300f, Renderer.greenButtonColor).setAction(saveConfig),
 										new TextButton("Close", 0, -1, 0f, 1f * Renderer.separation, 300f, Renderer.redButtonColor).setAction(closeCurrent))
-										.setWriting().setCloseAction(saveConfig).setErrorText(new Text("", 0, 1, 0f, 60f, Renderer.redTextColor));
+										.setWriting().setErrorText(new Text("", 0, 1, 0f, 60f, Renderer.redTextColor));
 										
 		dropScreen = new Screen(new Text("Drop the file into the window", 0, 0, 0f, 0f, Renderer.selectedTextColor));
 										
@@ -157,15 +159,18 @@ partial class Simulator : GameWindow{
 		dep.config.SetCamp("dotSize", 3f);
 		dep.config.SetCamp("bgColor", new Color3(8, 8, 26));
 		dep.config.SetCamp("maxParticles", 1000);
+		dep.config.SetCamp("vsync", true);
 		dep.config.SetCamp("maxFps", 144);
+		dep.config.SetCamp("borderColor", new Color3(117, 215, 255));
 		
 		ren.setBgColor(dep.config.GetCamp<Color3>("bgColor"));
 		if(dep.config.GetCamp<bool>("clouds") != ren.modes[0].active){
 			ren.modes[0].toggleActivation();
 		}
-		((PointRenderMode) ren.modes[2]).setPointSize(dep.config.GetCamp<float>("dotSize"));
+		((PointRenderMode) ren.modes[3]).setPointSize(dep.config.GetCamp<float>("dotSize"));
 		setVsync(dep.config.GetCamp<bool>("vsync"));
 		maxFps = dep.config.GetCamp<int>("maxFps");
+		((BorderRenderMode) ren.modes[1]).setColor(dep.config.GetCamp<Color3>("borderColor"));
 		
 		((CheckButton) optionsScreen.buttons[2]).on = dep.config.GetCamp<bool>("clouds");
 		((Field) optionsScreen.buttons[3]).text = dep.config.GetCamp<float>("dotSize").ToString();
@@ -173,6 +178,7 @@ partial class Simulator : GameWindow{
 		((Field) optionsScreen.buttons[5]).text = dep.config.GetCamp<int>("maxParticles").ToString();
 		((CheckButton) optionsScreen.buttons[7]).on = dep.config.GetCamp<bool>("vsync");
 		((Field) optionsScreen.buttons[8]).text = dep.config.GetCamp<int>("maxFps").ToString();
+		((Field) optionsScreen.buttons[9]).text = dep.config.GetCamp<Color3>("borderColor").ToString().Substring(1);
 		
 		dep.config.Save();
 	}
@@ -181,28 +187,30 @@ partial class Simulator : GameWindow{
 		float d;
 		if(!float.TryParse(((Field) optionsScreen.buttons[3]).text, out d)){
 			optionsScreen.showError(ren, "Couldnt parse dot size");
-			ren.setCornerInfo("Couldnt parse dot size");
 			return;
 		}
 		
 		Color3 b;
 		if(!Color3.TryParse(((Field) optionsScreen.buttons[4]).text, out b)){
 			optionsScreen.showError(ren, "Couldnt parse background color");
-			ren.setCornerInfo("Couldnt parse background color");
 			return;
 		}
 		
 		int m;
 		if(!int.TryParse(((Field) optionsScreen.buttons[5]).text, out m)){
 			optionsScreen.showError(ren, "Couldnt parse max particles");
-			ren.setCornerInfo("Couldnt parse max particles");
 			return;
 		}
 		
 		int f;
 		if(!int.TryParse(((Field) optionsScreen.buttons[8]).text, out f)){
 			optionsScreen.showError(ren, "Couldnt parse target framerate");
-			ren.setCornerInfo("Couldnt parse target framerate");
+			return;
+		}
+		
+		Color3 w;
+		if(!Color3.TryParse(((Field) optionsScreen.buttons[9]).text, out w)){
+			optionsScreen.showError(ren, "Couldnt parse border color");
 			return;
 		}
 		
@@ -212,14 +220,16 @@ partial class Simulator : GameWindow{
 		dep.config.SetCamp("maxParticles", m);
 		dep.config.SetCamp("vsync", ((CheckButton) optionsScreen.buttons[7]).on);
 		dep.config.SetCamp("maxFps", f);
+		dep.config.SetCamp("borderColor", 2);
 		
 		ren.setBgColor(b);
 		if(dep.config.GetCamp<bool>("clouds") != ren.modes[0].active){
 			ren.modes[0].toggleActivation();
 		}
-		((PointRenderMode) ren.modes[2]).setPointSize(d);
+		((PointRenderMode) ren.modes[3]).setPointSize(d);
 		setVsync(dep.config.GetCamp<bool>("vsync"));
 		maxFps = f;
+		((BorderRenderMode) ren.modes[1]).setColor(w);
 		
 		if(Simulation.maxParticles != m){
 			optionsScreen.showError(ren, "Some changes will apply when unisim restarts");

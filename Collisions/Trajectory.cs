@@ -107,6 +107,42 @@ class Trajectory{
 		}
 	}
 	
+	public static bool getT(Trajectory a, WorldBorder wb, double r1, out Collision outT){
+		if(AABB.contained(a.box, wb.box)){
+			outT = null;
+			return false;
+		}
+		
+		//List<Collision> ts = new List<Collision>();
+		
+		/* for(int i = 0; i < a.paths.Count; i++){
+			if(Path.getT(a.paths[i], wb, a, r1, out Collision t)){
+				ts.Add(t);
+			}
+		} */
+		
+		if(Path.getT(a.paths[a.paths.Count - 1], wb, a, r1, out Collision t)){
+			outT = t;
+			return true;
+		}
+		
+		/* if(ts.Count > 0){
+			Collision min = ts[0];
+			
+			foreach(Collision c in ts){
+				if (c.t < min.t){
+					min = c;
+				}
+			}
+			
+			outT = min;
+			return true;
+		} */
+		
+		outT = null;
+		return false;
+	}
+	
 	public static bool getT(Trajectory a, Trajectory b, double r1, double r2, out Collision outT){
 		if(!(a.box % b.box)){
 			outT = null;

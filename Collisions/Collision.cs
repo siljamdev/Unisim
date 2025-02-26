@@ -1,10 +1,19 @@
 using System;
+using System.Text;
+using OpenTK;
+using OpenTK.Mathematics;
 
 class Collision{
 	public double t{get; private set;}
 	
 	public Trajectory a{get; private set;}
 	public Trajectory b{get; private set;}
+	
+	public bool isWithWB;
+	
+	public WorldBorder wb;
+	
+	public Vector2d wallNormal;
 	
 	double ra;
 	double rb;
@@ -19,12 +28,29 @@ class Collision{
 		rb = rad2;
 	}
 	
+	public Collision(Trajectory t1, WorldBorder wo, double time, double rad1, Vector2d n){
+		t = time;
+		
+		a = t1;
+		wb = wo;
+		isWithWB = true;
+		wallNormal = n;
+		
+		ra = rad1;
+	}
+	
 	public void cancel(){
 		a.cancelCollision(this, ra);
-		b.cancelCollision(this, rb);
+		
+		if(!isWithWB){
+			b.cancelCollision(this, rb);
+		}
 	}
 	
 	public void cancel(Trajectory c){
+		if(isWithWB){
+			return;
+		}
 		if(a == c){
 			b.cancelCollision(this, rb);
 		}else if(b == c){

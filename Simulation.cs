@@ -8,6 +8,8 @@ class Simulation{
 	List<Particle> particlesToAdd;
 	List<Particle> particlesToRemove;
 	
+	public WorldBorder wb{get; private set;}
+	
 	public bool isRunning{get; private set;}
 	bool stopFlag;
 	
@@ -35,6 +37,8 @@ class Simulation{
 		
 		particlesToAdd = new List<Particle>();
 		particlesToRemove = new List<Particle>();
+		
+		wb = new WorldBorder(new Vector2d(1000d, 1000d));
 		
 		//tt = new TimeTool(1000, "Add New Particles", "Reset Particles", "Calculate Gravity", "Calculate Charges 1", "Calculate Charges 2", "Calculate Weak", "Calculate Repulsion", "Update Velocity", "Find Collisions", "Resolve Collisions", "Check errors in Collisions", "Generate DrawBuffers");
 		
@@ -253,17 +257,39 @@ class Simulation{
 			}
 		}
 		
+		if(wb != null){
+			for(int i = 0; i < particles.Count; i++){
+				if(Particle.checkCollision(particles[i], wb, out Collision c)){
+					collisionsFound.Add((c, i, -1));
+				}
+			}
+		}
+		
+		
 		if(collisionsFound.Count > 0){
 			collisionsFound.Sort((a, b) => a.Item1.t.CompareTo(b.Item1.t));
 			
-			Particle.resolveCollision(particles[collisionsFound[0].Item2], particles[collisionsFound[0].Item3], collisionsFound[0].Item1);
-			pendingA = collisionsFound[0].Item2;
-			pendingB = collisionsFound[0].Item3;
-			collisionsFound.RemoveAt(0);
-			
-			collisionsFound = collisionsFound
-			.Where(c => c.Item2 != pendingA && c.Item2 != pendingB && c.Item3 != pendingA && c.Item3 != pendingB)
-			.ToList();
+			if(collisionsFound[0].Item3 == -1){
+				Particle.resolveCollision(particles[collisionsFound[0].Item2], wb, collisionsFound[0].Item1);
+				
+				pendingA = collisionsFound[0].Item2;
+				pendingB = -1;
+				collisionsFound.RemoveAt(0);
+				
+				collisionsFound = collisionsFound
+				.Where(c => c.Item2 != pendingA && c.Item3 != pendingA)
+				.ToList();
+			}else{
+				Particle.resolveCollision(particles[collisionsFound[0].Item2], particles[collisionsFound[0].Item3], collisionsFound[0].Item1);
+				
+				pendingA = collisionsFound[0].Item2;
+				pendingB = collisionsFound[0].Item3;
+				collisionsFound.RemoveAt(0);
+				
+				collisionsFound = collisionsFound
+				.Where(c => c.Item2 != pendingA && c.Item2 != pendingB && c.Item3 != pendingA && c.Item3 != pendingB)
+				.ToList();
+			}
 		}
 		
 		while((pendingA != null && pendingB != null) || collisionsFound.Count > 1){
@@ -277,12 +303,22 @@ class Simulation{
 				}
 			}
 			
-			for(int j = 0; j < particles.Count; j++){
-				if(j == pendingB || j == pendingA){
-					continue;
+			if(wb != null && Particle.checkCollision(particles[(int) pendingA], wb, out Collision c1)){
+				collisionsFound.Add((c1, (int) pendingA, -1));
+			}
+			
+			if(pendingB != -1){
+				for(int j = 0; j < particles.Count; j++){
+					if(j == pendingB || j == pendingA){
+						continue;
+					}
+					if(Particle.checkCollision(particles[(int) pendingB], particles[j], out Collision t)){
+						collisionsFound.Add((t, (int) pendingB, j));
+					}
 				}
-				if(Particle.checkCollision(particles[(int) pendingB], particles[j], out Collision t)){
-					collisionsFound.Add((t, (int) pendingB, j));
+				
+				if(wb != null && Particle.checkCollision(particles[(int) pendingB], wb, out Collision c2)){
+					collisionsFound.Add((c2, (int) pendingB, -1));
 				}
 			}
 			
@@ -292,14 +328,27 @@ class Simulation{
 			if(collisionsFound.Count > 0){
 				collisionsFound.Sort((a, b) => a.Item1.t.CompareTo(b.Item1.t));
 				
-				Particle.resolveCollision(particles[collisionsFound[0].Item2], particles[collisionsFound[0].Item3], collisionsFound[0].Item1);
-				pendingA = collisionsFound[0].Item2;
-				pendingB = collisionsFound[0].Item3;
-				collisionsFound.RemoveAt(0);
-				
-				collisionsFound = collisionsFound
-				.Where(c => c.Item2 != pendingA && c.Item2 != pendingB && c.Item3 != pendingA && c.Item3 != pendingB)
-				.ToList();
+				if(collisionsFound[0].Item3 == -1){
+					Particle.resolveCollision(particles[collisionsFound[0].Item2], wb, collisionsFound[0].Item1);
+					
+					pendingA = collisionsFound[0].Item2;
+					pendingB = -1;
+					collisionsFound.RemoveAt(0);
+					
+					collisionsFound = collisionsFound
+					.Where(c => c.Item2 != pendingA && c.Item3 != pendingA)
+					.ToList();
+				}else{
+					Particle.resolveCollision(particles[collisionsFound[0].Item2], particles[collisionsFound[0].Item3], collisionsFound[0].Item1);
+					
+					pendingA = collisionsFound[0].Item2;
+					pendingB = collisionsFound[0].Item3;
+					collisionsFound.RemoveAt(0);
+					
+					collisionsFound = collisionsFound
+					.Where(c => c.Item2 != pendingA && c.Item2 != pendingB && c.Item3 != pendingA && c.Item3 != pendingB)
+					.ToList();
+				}
 			}			
 		}
 		

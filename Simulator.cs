@@ -169,7 +169,8 @@ partial class Simulator : GameWindow{
 		new ModelInstance(ModelInstanceOperation.Type, "bgColor", new Color3(8, 8, 26)),
 		new ModelInstance(ModelInstanceOperation.Type, "maxParticles", 1000),
 		new ModelInstance(ModelInstanceOperation.Type, "vsync", true),
-		new ModelInstance(ModelInstanceOperation.Type, "maxFps", 144));
+		new ModelInstance(ModelInstanceOperation.Type, "maxFps", 144),
+		new ModelInstance(ModelInstanceOperation.Type, "borderColor", new Color3(117, 215, 255)));
 		
 		afm.deleteNotMentioned = true;
 		
@@ -184,9 +185,10 @@ partial class Simulator : GameWindow{
 		if(dep.config.GetCamp<bool>("clouds") != ren.modes[0].active){
 			ren.modes[0].toggleActivation();
 		}
-		((PointRenderMode) ren.modes[2]).setPointSize(dep.config.GetCamp<float>("dotSize"));
+		((PointRenderMode) ren.modes[3]).setPointSize(dep.config.GetCamp<float>("dotSize"));
 		setVsync(dep.config.GetCamp<bool>("vsync"));
 		maxFps = dep.config.GetCamp<int>("maxFps");
+		((BorderRenderMode) ren.modes[1]).setColor(dep.config.GetCamp<Color3>("borderColor"));
 		
 		((CheckButton) optionsScreen.buttons[2]).on = dep.config.GetCamp<bool>("clouds");
 		((Field) optionsScreen.buttons[3]).text = dep.config.GetCamp<float>("dotSize").ToString();
@@ -194,6 +196,7 @@ partial class Simulator : GameWindow{
 		((Field) optionsScreen.buttons[5]).text = dep.config.GetCamp<int>("maxParticles").ToString();
 		((CheckButton) optionsScreen.buttons[7]).on = dep.config.GetCamp<bool>("vsync");
 		((Field) optionsScreen.buttons[8]).text = dep.config.GetCamp<int>("maxFps").ToString();
+		((Field) optionsScreen.buttons[9]).text = dep.config.GetCamp<Color3>("borderColor").ToString().Substring(1);
 	}
 	
 	public void setVsync(bool b){
@@ -361,12 +364,12 @@ partial class Simulator : GameWindow{
 		}
 		
 		if(showForces.isActive(KeyboardState)){
-			ren.modes[3].toggleActivation();
 			ren.modes[4].toggleActivation();
+			ren.modes[5].toggleActivation();
 			sim.changeForceMode = true;
 			sim.tryGenerate();
 			
-			if(ren.modes[3].active){
+			if(ren.modes[4].active){
 				ren.setCornerInfo("Forces enabled");
 			}else{
 				ren.setCornerInfo("Forces disabled");
@@ -374,9 +377,9 @@ partial class Simulator : GameWindow{
 		}
 		
 		if(showPoints.isActive(KeyboardState)){
-			ren.modes[2].toggleActivation();
+			ren.modes[3].toggleActivation();
 			
-			if(ren.modes[2].active){
+			if(ren.modes[3].active){
 				ren.setCornerInfo("Points enabled");
 			}else{
 				ren.setCornerInfo("Points disabled");
@@ -384,11 +387,11 @@ partial class Simulator : GameWindow{
 		}
 		
 		if(showBoxes.isActive(KeyboardState)){
-			ren.modes[5].toggleActivation();
 			ren.modes[6].toggleActivation();
+			ren.modes[7].toggleActivation();
 			sim.tryGenerate();
 			
-			if(ren.modes[5].active){
+			if(ren.modes[6].active){
 				ren.setCornerInfo("Bounding boxes enabled");
 			}else{
 				ren.setCornerInfo("Bounding boxes disabled");
@@ -450,9 +453,9 @@ partial class Simulator : GameWindow{
 	
 	public void removeSelection(){
 		if(ren.cam.follow == null){
-			Console.WriteLine("B");
+			//Console.WriteLine("B");
 			if(selectionDisplaying){
-				AABB sel = ((SquareRenderMode) ren.modes[8]).getSelection();
+				AABB sel = ((SquareRenderMode) ren.modes[9]).getSelection();
 				List<Particle> par = sim.getParticlesInSelection(sel);
 				sim.removeParticle(par);
 				ren.setCornerInfo("Removed " + par.Count + " particles");
@@ -471,7 +474,7 @@ partial class Simulator : GameWindow{
 	public void duplicateSelection(){	
 		if(ren.cam.follow == null){
 			if(selectionDisplaying){
-				AABB sel = ((SquareRenderMode) ren.modes[8]).getSelection();
+				AABB sel = ((SquareRenderMode) ren.modes[9]).getSelection();
 				List<Particle> par = sim.getParticlesInSelection(sel);
 				
 				List<Vector2d> c = new List<Vector2d>();
@@ -498,7 +501,7 @@ partial class Simulator : GameWindow{
 	void stopDisplayingSquare(){
 		if(selectionDisplaying){
 			selectionDisplaying = false;
-			ren.modes[8].toggleActivation();
+			ren.modes[9].toggleActivation();
 			ren.mainScreen.buttons[6].active = false;
 			ren.mainScreen.buttons[7].active = false;
 		}
@@ -692,8 +695,8 @@ partial class Simulator : GameWindow{
 						stopDisplayingSquare();
 					}else{
 						if(waitingForSelection){
-							((SquareRenderMode) ren.modes[8]).lockSelection(ren.cam.mouseWorldPos);
-							ren.modes[8].toggleActivation();
+							((SquareRenderMode) ren.modes[9]).lockSelection(ren.cam.mouseWorldPos);
+							ren.modes[9].toggleActivation();
 							ren.cam.setFollow(null);
 							waitingForSelection = false;
 							((ImageButton) ren.mainScreen.buttons[8]).color = Renderer.textColor;
@@ -736,7 +739,7 @@ partial class Simulator : GameWindow{
 			}
         }else if(e.Button == MouseButton.Left){
 			if(ren.currentScreen == null && selectionLocked){
-				((SquareRenderMode) ren.modes[8]).lockEnd(ren.cam.mouseWorldPos);
+				((SquareRenderMode) ren.modes[9]).lockEnd(ren.cam.mouseWorldPos);
 				selectionLocked = false;
 				selectionDisplaying = true;
 				ren.mainScreen.buttons[6].active = true;

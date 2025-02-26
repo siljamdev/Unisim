@@ -21,6 +21,42 @@ struct Formule{
 		return pos + " + t * " + vel;
 	}
 	
+	public static bool getT(Formule f1, WorldBorder wb, double r1, int x, out double t, out Vector2d n){
+		double t2 = 10d;
+		Vector2d normal = Vector2d.Zero;
+		switch(x){
+			case 0:
+			t2 = (wb.size.X - r1 - f1.pos.X) / f1.vel.X;
+			normal = new Vector2d(-1d, 0d);
+			break;
+			
+			case 1:
+			t2 = (-wb.size.X + r1 - f1.pos.X) / f1.vel.X;
+			normal = new Vector2d(1d, 0d);
+			break;
+			
+			case 2:
+			t2 = (wb.size.Y - r1 - f1.pos.Y) / f1.vel.Y;
+			normal = new Vector2d(0d, -1d);
+			break;
+			
+			case 3:
+			t2 = (-wb.size.Y + r1 - f1.pos.Y) / f1.vel.Y;
+			normal = new Vector2d(0d, 1d);
+			break;
+		}
+		
+		if(t2 >= 0d && t2 <= 1d){
+			n = normal;
+			t = t2;
+			return true;
+		}
+		
+		t = 0d;
+		n = Vector2d.Zero;
+		return false;
+	}
+	
 	public static bool getT(Formule f1, Formule f2, double r1, double r2, out double t){
 		double a = f1.vel.X - f2.vel.X;
 		double b = f1.vel.Y - f2.vel.Y;

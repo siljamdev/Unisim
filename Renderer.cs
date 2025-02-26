@@ -70,18 +70,19 @@ class Renderer{
 		modes = new List<RenderMode>();
 		
 		modes.Add(new BackgroundRenderMode(this, sim)); //0
+		modes.Add(new BorderRenderMode(this, sim)); //1
 		
 		ParticleRenderMode p = new ParticleRenderMode(this, sim);
-		modes.Add(p); //1
-		modes.Add(new PointRenderMode(this, sim, p.mesh)); //2
+		modes.Add(p); //2
+		modes.Add(new PointRenderMode(this, sim, p.mesh)); //3
 		
 		Shader lineShader = Shader.generateFromAssembly("line");
-		modes.Add(new ForcesRenderMode(this, sim, lineShader)); //3
-		modes.Add(new VelocitiesRenderMode(this, sim, lineShader)); //4
-		modes.Add(new BoxesRenderMode(this, sim)); //5
-		modes.Add(new CollisionRenderMode(this, sim)); //6
-		modes.Add(new GhostRenderMode(this, sim, lineShader)); //7
-		modes.Add(new SquareRenderMode(this, sim)); //8
+		modes.Add(new ForcesRenderMode(this, sim, lineShader)); //4
+		modes.Add(new VelocitiesRenderMode(this, sim, lineShader)); //5
+		modes.Add(new BoxesRenderMode(this, sim)); //6
+		modes.Add(new CollisionRenderMode(this, sim)); //7
+		modes.Add(new GhostRenderMode(this, sim, lineShader)); //8
+		modes.Add(new SquareRenderMode(this, sim)); //9
 		
 		//other utilities
 		
@@ -122,9 +123,10 @@ class Renderer{
 		
 		//Activate modes
 		//modes[0].toggleActivation(); //Clouds
-		modes[1].toggleActivation();
+		modes[1].toggleActivation(); //World border
 		modes[2].toggleActivation();
-		modes[7].toggleActivation();
+		modes[3].toggleActivation();
+		modes[8].toggleActivation();
 		
 		//For points
 		GL.Enable(EnableCap.ProgramPointSize);

@@ -164,6 +164,15 @@ class Particle{
 		emptyForces();
 	}
 	
+	public static bool checkCollision(Particle a, WorldBorder wb, out Collision outT){
+		if(Trajectory.getT(a.trajectory, wb, a.radius, out Collision t)){
+			outT = t;
+			return true;
+		}
+		outT = null;
+		return false;
+	}
+	
 	public static bool checkCollision(Particle a, Particle b, out Collision outT){
 		if(Trajectory.getT(a.trajectory, b.trajectory, a.radius, b.radius, out Collision t)){
 			outT = t;
@@ -171,6 +180,34 @@ class Particle{
 		}
 		outT = null;
 		return false;
+	}
+	
+	public static void resolveCollision(Particle a, WorldBorder wb, Collision c){
+		double t = c.t;
+		
+		Vector2d n = c.wallNormal; //normal
+		
+		Vector2d va = a.trajectory.getAbsVel(t);
+		
+		Vector2d van = Vector2d.Dot(va, n) * n;
+		Vector2d vat = va - van;
+		
+		//Vector2d vanp = (((a.mass - b.mass) * van) + ((2f * b.mass) * vbn)) / (a.mass + b.mass);
+		//Vector2d vbnp = (((b.mass - a.mass) * vbn) + ((2f * a.mass) * van)) / (a.mass + b.mass);
+		
+		Vector2d vanp = -van;
+		
+		Vector2d vap = vanp + vat;
+		
+		vap *= 1d - t;
+		
+		a.trajectory.addCollision(c, vap, a.radius);
+		
+		a.trajectory.updateBox();
+		
+		a.nextVelocity = a.trajectory.getAbsVel(1d);
+		
+		a.velocity = a.trajectory.getPos(1d) - a.position;
 	}
 	
 	public static void resolveCollision(Particle a, Particle b, Collision c){

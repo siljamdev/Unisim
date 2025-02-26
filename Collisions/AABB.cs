@@ -43,6 +43,10 @@ class AABB{
 		right += r;
 	}
 	
+	public static bool contained(AABB a, AABB b){ //a is contained in b
+		return b.left < a.left && b.right > a.right && b.down < a.down && b.up > a.up;
+	}
+	
 	public static bool collide(AABB a, AABB b){
 		return a.left <= b.right && a.right >= b.left && a.down <= b.up && a.up >= b.down;
 	}
