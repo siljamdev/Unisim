@@ -8,7 +8,6 @@ class BorderRenderMode : RenderMode{
 	
 	Shader shader;
 	Mesh mesh;
-	Texture2D perlin;
 	
 	Vector2d size;
 	

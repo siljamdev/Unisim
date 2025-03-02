@@ -788,7 +788,6 @@ partial class Simulator : GameWindow{
 	
 	protected override void OnMouseDown(MouseButtonEventArgs e){
         if(e.Button == MouseButton.Left){
-			Screen s;
 			if(ren.currentScreen == null){
 				if(!ren.mainScreen.click(ren, ren.cam.mouseLastPos, KeyboardState.IsKeyDown(Keys.LeftShift))){
 					Particle p = sim.getParticleAtCursor(ren.cam.mouseWorldPos);

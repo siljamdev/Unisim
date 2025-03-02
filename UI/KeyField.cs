@@ -14,8 +14,6 @@ class KeyField : Button{
 	Vector2 textPos;
 	Vector2 qPos;
 	
-	float size;
-	
 	public bool selected;
 	
 	public string? description;
