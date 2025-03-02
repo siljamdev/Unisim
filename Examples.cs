@@ -6,7 +6,7 @@ using OpenTK.Mathematics;
 using AshLib;
 
 static class Examples{
-	public static readonly Particle[] solarSystem = new Particle[]{
+	public static readonly Scene solarSystem = new Scene(new Particle[]{
 		// Sun
 		new Particle(new Vector2(0f, 0f), 1090f, new Color3("FFDD00")),
 		// Mercury
@@ -41,7 +41,7 @@ static class Examples{
 		new Particle(new Vector2(287099f, 0f), new Vector2(0f, -1.62f), 40f, new Color3("55BBFF")),
 		// Neptune
 		new Particle(new Vector2(450430f, 0f), new Vector2(0f, -1.32f), 38f, new Color3("3333FF"))
-	};
+	}.ToList(), null, "Solar system");
 	
 	public static readonly PlanetSystem solntse = new PlanetSystem(1090f, "FFDD00").setLastName("Sun")
 							.addPlanet(3.8f, 5790f, "BBBBBB").setLastName("Mercury") // Mercury
@@ -66,7 +66,8 @@ static class Examples{
 								.addMoon(2.3f, 300f, "6D9A96").setLastName("Triton") // Triton
 								.addMoon(0.7f, 1670f, "D0E4F3").setLastName("Nereid") // Nereid
 							.addPlanet(1.2f, 590600f, "C0A0A0").setLastName("Pluto") // Pluto
-								.addMoon(0.5f, 200f, "F090A0").setLastName("Charon"); // Charon
+								.addMoon(0.5f, 200f, "F090A0").setLastName("Charon") // Charon
+							.setName("Solar system");
 							
 	public static readonly PlanetSystem kyra = new PlanetSystem(1200f, "FF4400").setLastName("Kyra")
 							.addPlanet(8f, 11090f, "FF6B21").setLastName("Erphest")
@@ -108,19 +109,12 @@ static class Examples{
 							.addPlanet(5.6f, 160000f, "A52A2A").setLastName("Zythre")
 							.addPlanet(20f, 210000f, "B0C4DE").setLastName("Ceres");
 	
-	public static readonly Particle[] planet = new Particle[]{
+	public static readonly Scene planet = new Scene(new Particle[]{
 		new Particle(new Vector2(0f, 0f), new Vector2(0f, 0f), 100f, new Color3("FFDD00")),
 		new Particle(new Vector2(250f, 0f), new Vector2(0f, -8f), 10f, new Color3("00FFFF"))
-	};
+	}.ToList(), null, "Planet");
 	
-	public static readonly Particle[] test = new Particle[]{
-		Particle.Tark.translate(1, -32),
-		Particle.Mark.translate(0, -23),
-		Particle.Tark.translate(0, 23),
-		Particle.Mark.translate(2, 32)
-	};
-	
-	public static readonly Particle[] earlySolarSystem = new Particle[]{
+	public static readonly Scene earlySolarSystem = new Scene(new Particle[]{
 		new Particle(new Vector2(0f, 0f), new Vector2(0f, 0f), 1000f, new Color3("FFDD00")),
 		new Particle(new Vector2(10000f, 0f), new Vector2(0f, -10f), 10f, new Color3("BBBBBB")),
 		new Particle(new Vector2(16000f, 0f), new Vector2(0f, -8f), 30f, new Color3("DDBB00")),
@@ -128,23 +122,23 @@ static class Examples{
 		new Particle(new Vector2(37000f, 0f), new Vector2(0f, -5f), 15f, new Color3("CC1100")),
 		new Particle(new Vector2(50000f, 0f), new Vector2(0f, -5.5f), 130f, new Color3("DD2255")),
 		new Particle(new Vector2(70000f, 0f), new Vector2(0f, -4f), 100f, new Color3("FFB6AF"))
-	};
+	}.ToList(), null, "Solar system");
 	
-	public static readonly Particle[] collision = new Particle[]{
+	public static readonly Scene collision = new Scene(new Particle[]{
 		new Particle(new Vector2(-30f, -30f), new Vector2(1f, 1f), 10f, new Color3("FFDD00")),
 		new Particle(new Vector2(30f, -30f), new Vector2(-1f, 1f), 8f, new Color3("00FFFF")),
 		new Particle(new Vector2(0f, -60f), new Vector2(0f, 2f), 4f, new Color3("00FF00")),
 		new Particle(new Vector2(20f, 80f), new Vector2(-0.1f, -2.2f), 4f, new Color3("FF3000")),
 		new Particle(new Vector2(200f, 0f), new Vector2(-6f, 0.5f), 6f, new Color3("FFFFFF"))
-	};
+	}.ToList(), null, "Collision");
 	
-	public static Particle[] RPF{
+	public static Scene RPF{
 		get{			
 			return RPFparams(100, 500, 100f, 0.5f, 30, 30, 30, 5, 5, true);
 		}
 	}
 	
-	public static Particle[] RPFparams(int mnum, int xnum, float size, float vel, int wb, int wm, int wt, int wc, int wp, bool ring){
+	public static Scene RPFparams(int mnum, int xnum, float size, float vel, int wb, int wm, int wt, int wc, int wp, bool ring){
 		List<Particle> particles = new List<Particle>();
 		Random r = new Random();
 	
@@ -205,7 +199,14 @@ static class Examples{
 			particles.Add(newParticle);
 		}
 		
-		return particles.ToArray();
+		return new Scene(particles, null, generateRandomName());
+	}
+	
+	static string generateRandomName(int length = 16){
+		const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+		Random random = new Random();
+		return new string(Enumerable.Range(0, length)
+			.Select(_ => chars[random.Next(chars.Length)]).ToArray());
 	}
 
 	

@@ -9,11 +9,9 @@ class Collision{
 	public Trajectory a{get; private set;}
 	public Trajectory b{get; private set;}
 	
-	public bool isWithWB;
-	
-	public WorldBorder wb;
-	
-	public Vector2d wallNormal;
+	public bool isWithWB{get; private set;}
+	public WorldBorder wb{get; private set;}
+	public Vector2d wallNormal{get; private set;}
 	
 	double ra;
 	double rb;

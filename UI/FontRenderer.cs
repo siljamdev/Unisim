@@ -37,7 +37,7 @@ class FontRenderer{
 		glyphRows = row;
 		glyphColumns = col;
 		font = t;
-		mapRaw = "ABCDEFGHIJKLMNOPQRSTUVWXYZ .,:+-*/\\'\"$()[]^?!%~º1234567890 |□#<>abcdefghijklmnopqrstuvwxyz"; //default map
+		mapRaw = "ABCDEFGHIJKLMNOPQRSTUVWXYZ .,:+-*/\\'\"$()[]^?!%~º1234567890 |□#<>abcdefghijklmnopqrstuvwxyz ;&@`_{}Ññ"; //default map
 		generateMap();
 		fontMesh = m;
 		

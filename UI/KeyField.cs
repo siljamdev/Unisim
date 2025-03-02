@@ -3,8 +3,8 @@ using OpenTK;
 using OpenTK.Mathematics;
 using AshLib;
 
-class Field : Button{
-	public string text;
+class KeyField : Button{
+	public KeyBind key;
 	string question;
 	
 	Vector2i corner;
@@ -16,50 +16,27 @@ class Field : Button{
 	
 	float size;
 	
-	int maxChars;
-	public WritingType type;
-	
 	public bool selected;
 	
 	public string? description;
 	
-	public Field(string q, string t, int cx, int cy, float ox, float oy, float xs, int mc, WritingType wt) : base(){
-		text = t;
+	public KeyField(string q, KeyBind k, int cx, int cy, float ox, float oy) : base(){
+		key = k;
 		question = q;
-		
-		maxChars = mc;
-		type = wt;
 		
 		corner = new Vector2i(cx, cy);
 		offset = new Vector2(ox, oy);
-		
-		size = xs;
 	}
 	
-	public Field setDescription(string d){
+	public KeyField setDescription(string d){
 		description = d;
 		hasHover = true;
 		return this;
 	}
 	
-	public void addStr(string s){
-		if(text.Length + s.Length > maxChars){
-			return;
-		}
-		text += s;
-	}
-	
-	public void delChar(){
-		if(text.Length == 0){
-			return;
-		}
-		text = text.Substring(0, text.Length - 1);
-	}
-	
 	public override void draw(Renderer ren, Vector2d m){
+		string text = key.key.ToString();
 		Vector2 size = new Vector2(text.Length * Renderer.textSize.X + 10f, Renderer.textSize.Y + 10f);
-		
-		size.X = Math.Max(size.X, this.size);
 		
 		if(selected){
 			ren.ui.drawRect(pos, size, Renderer.fieldSelectedColor, 0.8f);
@@ -76,17 +53,12 @@ class Field : Button{
 		
 		Vector2 size = new Vector2(description.Length * Renderer.textSize.X + 10f, Renderer.textSize.Y + 10f);
 		
-		if(mouse.X + size.X <= ren.width / 2f){
+		if(mouse.X + size.X > ren.width / 2f){
+			ren.ui.drawRect(mouse.X - size.X, mouse.Y + Renderer.textSize.Y + 10f, size.X, size.Y, Renderer.black, 0.5f);
+			ren.fr.drawText(description, mouse.X - size.X + 5f, mouse.Y + Renderer.textSize.Y + 5f, Renderer.textSize, Renderer.textColor);
+		}else{
 			ren.ui.drawRect(mouse.X, mouse.Y + Renderer.textSize.Y + 10f, size.X, size.Y, Renderer.black, 0.5f);
 			ren.fr.drawText(description, mouse.X + 5f, mouse.Y + Renderer.textSize.Y + 5f, Renderer.textSize, Renderer.textColor);
-		}else{
-			if((mouse.X + size.X) - (ren.width / 2f) <= (-ren.width / 2f) - (mouse.X - size.X)){
-				ren.ui.drawRect(mouse.X, mouse.Y + Renderer.textSize.Y + 10f, size.X, size.Y, Renderer.black, 0.5f);
-				ren.fr.drawText(description, mouse.X + 5f, mouse.Y + Renderer.textSize.Y + 5f, Renderer.textSize, Renderer.textColor);
-			}else{
-				ren.ui.drawRect(mouse.X - size.X, mouse.Y + Renderer.textSize.Y + 10f, size.X, size.Y, Renderer.black, 0.5f);
-				ren.fr.drawText(description, mouse.X - size.X + 5f, mouse.Y + Renderer.textSize.Y + 5f, Renderer.textSize, Renderer.textColor);
-			}
 		}
 	}
 	
@@ -96,9 +68,9 @@ class Field : Button{
 		
 		pos = cor - corner * offset;
 		
-		Vector2 size = new Vector2(text.Length * Renderer.textSize.X + 10f, Renderer.textSize.Y + 10f);
+		string text = key.key.ToString();
 		
-		size.X = Math.Max(size.X, this.size);
+		Vector2 size = new Vector2(text.Length * Renderer.textSize.X + 10f, Renderer.textSize.Y + 10f);
 		
 		if(corner.X == 1){
 			pos.X -= size.X;
@@ -124,8 +96,4 @@ class Field : Button{
 		
 		box = new AABB(pos.Y, pos.Y - size.Y, pos.X, pos.X + size.X);
 	}
-}
-
-public enum WritingType{
-	Hex, Int, Float, FloatPositive, String
 }

@@ -43,6 +43,10 @@ class AABB{
 		right += r;
 	}
 	
+	public static bool contained(Vector2d a, AABB b){ //a is contained in b
+		return b.left < a.X && b.right > a.X && b.down < a.Y && b.up > a.Y;
+	}
+	
 	public static bool contained(AABB a, AABB b){ //a is contained in b
 		return b.left < a.left && b.right > a.right && b.down < a.down && b.up > a.up;
 	}

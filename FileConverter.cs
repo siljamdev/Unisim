@@ -5,13 +5,21 @@ using AshLib;
 using AshLib.AshFiles;
 
 static class FileConverter{
-	public static AshFile getFile(List<Particle> par){
+	public static AshFile getFile(Scene sce){
 		AshFile af = new AshFile();
 		
-		af.SetCamp("numOfParticles", par.Count);
+		if(sce.wb != null){
+			af.SetCamp("worldBorder", convert(sce.wb.size));
+		}
 		
-		for(int i = 0; i < par.Count; i++){
-			Particle p = par[i];
+		if(sce.name != null){
+			af.SetCamp("name", sce.name);
+		}
+		
+		af.SetCamp("numOfParticles", sce.particles.Count);
+		
+		for(int i = 0; i < sce.particles.Count; i++){
+			Particle p = sce.particles[i];
 			
 			af.SetCamp(i + ".p", convert(p.position));
 			af.SetCamp(i + ".v", convert(p.velocity));
@@ -31,11 +39,22 @@ static class FileConverter{
 		return af;
 	}
 	
-	public static List<Particle> getParticles(AshFile af){
+	public static Scene getScene(AshFile af){
 		List<Particle> par = new List<Particle>();
 		
+		WorldBorder wb = null;
+		string name = null;
+		
+		if(af.CanGetCamp("worldBorder", out Vec2 siz) && siz.X > 0f && siz.Y > 0f){
+			wb = new WorldBorder(convert(siz));
+		}
+		
+		if(af.CanGetCamp("name", out string n)){
+			name = n;
+		}
+		
 		if(!af.CanGetCamp("numOfParticles", out int num)){
-			return par;
+			return new Scene(par, wb, name);
 		}
 		
 		for(int i = 0; i < num; i++){
@@ -67,7 +86,7 @@ static class FileConverter{
 			}
 		}
 		
-		return par;
+		return new Scene(par, wb, name);
 	}
 	
 	static Vec2 convert(Vector2d v){

@@ -8,6 +8,8 @@ uniform float iTime;
 
 uniform mat4 projection;
 
+uniform vec3 color;
+
 void main()
 {
 	float time = iTime / 10.0;
@@ -29,5 +31,5 @@ void main()
 	
 	float alpha = smoothstep(mm, mx, noise) * (1.0 - smoothstep(xm, xx, noise)) * (0.1 + 0.03 * sin(0.15*time));
 	
-	FragColor = vec4(0.8, 0.8, 0.8, alpha);
+	FragColor = vec4(color, alpha);
 } 

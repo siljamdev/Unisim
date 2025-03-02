@@ -40,6 +40,7 @@ class Renderer{
 	
 	Stopwatch sw;
 	string corner;
+	Color3 cornerColor;
 	
 	public Matrix4 projection{get; private set;}
 	
@@ -120,6 +121,12 @@ class Renderer{
 		ui.addTexture("square", Texture2D.generateFromAssembly("selectionButton.png", TextureParams.Default));
 		ui.addTexture("save", Texture2D.generateFromAssembly("saveButton.png", TextureParams.Default));
 		ui.addTexture("load", Texture2D.generateFromAssembly("loadButton.png", TextureParams.Default));
+		ui.addTexture("config", Texture2D.generateFromAssembly("configButton.png", TextureParams.Default));
+		ui.addTexture("next", Texture2D.generateFromAssembly("nextButton.png", TextureParams.Default));
+		ui.addTexture("previous", Texture2D.generateFromAssembly("previousButton.png", TextureParams.Default));
+		#if WINDOWS
+			ui.addTexture("file", Texture2D.generateFromAssembly("fileIcon.png", TextureParams.Default));
+		#endif
 		
 		//Activate modes
 		//modes[0].toggleActivation(); //Clouds
@@ -174,6 +181,13 @@ class Renderer{
 	
 	public void setCornerInfo(string s){
 		corner = s;
+		cornerColor = textColor;
+		sw.Restart();
+	}
+	
+	public void setCornerInfo(string s, Color3 c){
+		corner = s;
+		cornerColor = c;
 		sw.Restart();
 	}
 	
@@ -250,17 +264,17 @@ class Renderer{
 			}
 		}
 		
-		if(sim.isRunning){
+		if(sim.isRunning && sim.th != null){
 			fr.drawText("TPS: " + sim.th.stableFps.ToString("F0"), -width/2f, (height/2f), textSize, textColor);
 		}
 		
 		fr.drawText("Tick " + sim.tickCounter.ToString(), -width/2f, height/2f - textSize.Y, textSize, textColor);
 		
 		if(corner != null){
-			if(sw.Elapsed.TotalSeconds < 2d){
-				fr.drawText(corner, -width/2f, (height/2f) - 2f * textSize.Y, textSize, textColor);
-			}else if(sw.Elapsed.TotalSeconds < 3d){
-				fr.drawText(corner, -width/2f, (height/2f) - 2f * textSize.Y, textSize, textColor, (float) (3d - sw.Elapsed.TotalSeconds));
+			if(sw.Elapsed.TotalSeconds < 4d){
+				fr.drawText(corner, -width/2f, (height/2f) - 2f * textSize.Y, textSize, cornerColor);
+			}else if(sw.Elapsed.TotalSeconds < 6d){
+				fr.drawText(corner, -width/2f, (height/2f) - 2f * textSize.Y, textSize, cornerColor, (float) (6d - sw.Elapsed.TotalSeconds));
 			}else{
 				corner = null;
 				sw.Stop();

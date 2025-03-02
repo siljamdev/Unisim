@@ -2,6 +2,7 @@ using System;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
+using AshLib;
 
 class BackgroundRenderMode : RenderMode{
 	
@@ -9,8 +10,12 @@ class BackgroundRenderMode : RenderMode{
 	Mesh mesh;
 	Texture2D perlin;
 	
+	static readonly Color3 defCloudColor = new Color3(204, 204, 204);
+	
 	public BackgroundRenderMode(Renderer r, Simulation s) : base(r, s){
 		shader = Shader.generateFromAssembly("clouds");
+		
+		shader.setVector3("color", defCloudColor);
 		
 		float[] vertices = { //Just the full screen will be
 			-1f, -1f,
@@ -45,5 +50,9 @@ class BackgroundRenderMode : RenderMode{
 		perlin.bind();
 		
 		mesh.draw();
+	}
+	
+	public void setColor(Color3 c){
+		shader.setVector3("color", c);
 	}
 }

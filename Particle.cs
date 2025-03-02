@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using OpenTK;
 using OpenTK.Mathematics;
 using AshLib;
@@ -8,8 +9,10 @@ class Particle{
 	public Vector2d velocity{get; private set;}
 	
 	Vector2d? nextVelocity;
-	List<Vector2d> forces;
+	ConcurrentBag<Vector2d> forces;
 	Vector2d force;
+	
+	private readonly object forceLock = new();
 	
 	public Color3 color;
 	public string name;
@@ -41,7 +44,7 @@ class Particle{
 		
 		nextVelocity = null;
 		
-		forces = new List<Vector2d>();
+		forces = new ConcurrentBag<Vector2d>();
 		trajectory = new Trajectory(position, velocity, radius);
 	}
 	
@@ -68,7 +71,7 @@ class Particle{
 		
 		nextVelocity = null;
 		
-		forces = new List<Vector2d>();
+		forces = new ConcurrentBag<Vector2d>();
 		if(singleForce){
 			forces.Add(new Vector2d(0d, 0d));
 		}
@@ -100,6 +103,11 @@ class Particle{
 		return this;
 	}
 	
+	public Particle setPos(double x, double y){
+		position = new Vector2d(x, y);
+		return this;
+	}
+	
 	public Particle translate(double x, double y){
 		position += new Vector2d(x, y);
 		return this;
@@ -117,7 +125,9 @@ class Particle{
 	
 	public void addForce(Vector2d direction, double modulus){
 		if(singleForce){
-			force += direction * modulus;
+			lock(forceLock){
+				force += direction * modulus;
+			}
 		}else{
 			forces.Add(direction * modulus);
 		}
@@ -195,7 +205,7 @@ class Particle{
 		//Vector2d vanp = (((a.mass - b.mass) * van) + ((2f * b.mass) * vbn)) / (a.mass + b.mass);
 		//Vector2d vbnp = (((b.mass - a.mass) * vbn) + ((2f * a.mass) * van)) / (a.mass + b.mass);
 		
-		Vector2d vanp = -van;
+		Vector2d vanp = -van * elasticConstant;
 		
 		Vector2d vap = vanp + vat;
 		
@@ -268,8 +278,8 @@ class Particle{
 			return new float[]{(float) position.X, (float) position.Y, (float) (position.X + force.X), (float) (position.Y + force.Y)};
 		}else{
 			List<float> f = new List<float>();
-			for(int i = 0; i < forces.Count; i++){
-				f.AddRange(new float[]{(float) position.X, (float) position.Y, (float) (position.X + forces[i].X), (float) (position.Y + forces[i].Y)});
+			foreach(Vector2d v in forces){
+				f.AddRange(new float[]{(float) position.X, (float) position.Y, (float) (position.X + v.X), (float) (position.Y + v.Y)});
 			}
 			return f.ToArray();
 		}

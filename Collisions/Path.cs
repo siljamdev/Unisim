@@ -90,7 +90,7 @@ class Path{
 	}
 	
 	public static bool getT(Path a, WorldBorder wb, Trajectory ta, double r1, out Collision outT){
-		if(AABB.contained(a.box, wb.box)){
+		if(wb.contains(a.box)){
 			outT = null;
 			return false;
 		}
@@ -103,12 +103,10 @@ class Path{
 		Collision c = new Collision(null, null, 10d, -1d, -1d);
 		
 		for(int i = 0; i < 4; i++){
-			if(Formule.getT(a.getFormule(), wb, r1, i, out double t, out Vector2d n) && a.containsT(t) && !(a.startCollision != null && a.startCollision.isWithWB && Math.Abs(t - a.tstart) < 0.0000001d) && !(a.endCollision != null && a.endCollision.isWithWB && Math.Abs(t - a.tend) < 0.0000001d) && t < c.t){
+			if(Formule.getT(a.getFormule(), wb, r1, i, out double t, out Vector2d n) && a.containsT(t) && !(a.startCollision != null && a.startCollision.isWithWB && Math.Abs(t - a.tstart) < 0.00000001d) && !(a.endCollision != null && a.endCollision.isWithWB && Math.Abs(t - a.tend) < 0.00000001d) && t < c.t){
 				c = new Collision(ta, wb, t, r1, n);
 			}
 		}
-		
-		Console.WriteLine();
 		
 		if(c.t != 10d){
 			outT = c;

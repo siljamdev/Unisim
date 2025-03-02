@@ -17,12 +17,16 @@ using AshLib.Time;
 using AshLib.Folders;
 using AshLib.AshFiles;
 
+#if WINDOWS
+	using Keys = OpenTK.Windowing.GraphicsLibraryFramework.Keys;
+#endif
+
 partial class Simulator : GameWindow{
 	
 	KeyBind escape = new KeyBind(Keys.Escape, Keys.LeftShift, false);
 	
 	KeyBind fullscreen = new KeyBind(Keys.F11, false);
-	KeyBind screnshot = new KeyBind(Keys.F2, false);
+	KeyBind screenshot = new KeyBind(Keys.F2, false);
 	
 	KeyBind advancedMode = new KeyBind(Keys.LeftAlt, false);
 	
@@ -52,9 +56,10 @@ partial class Simulator : GameWindow{
 	
 	KeyBind del = new KeyBind(Keys.Backspace, false);
 	
-	public Dependencies dep;
+	KeyBind logUp = new KeyBind(Keys.Up, true);
+	KeyBind logDown = new KeyBind(Keys.Down, true);
 	
-	bool fieldLastWrite;
+	public Dependencies dep;
 	
 	bool waitingForSelection;
 	bool selectionLocked;
@@ -69,7 +74,7 @@ partial class Simulator : GameWindow{
 	
 	List<Particle> ghost;
 	
-	Particle[] particlesToLoad;
+	Scene? sceneToLoad;
 	
 	public static DeltaHelper dh;
 	
@@ -115,7 +120,7 @@ partial class Simulator : GameWindow{
 		
 		if(File.Exists(p)){
 			AshFile af = new AshFile(p);
-			particlesToLoad = FileConverter.getParticles(af).ToArray();
+			sceneToLoad = FileConverter.getScene(af);
 		}
 	}
 	
@@ -141,8 +146,8 @@ partial class Simulator : GameWindow{
 		
 		DrawBufferController dbc = new DrawBufferController();
 		
-		if(particlesToLoad != null){
-			sim = new Simulation(particlesToLoad, dbc);
+		if(sceneToLoad != null){
+			sim = new Simulation((Scene) sceneToLoad, dbc);
 		}else{
 			sim = new Simulation(Examples.RPF, dbc);
 		}		
@@ -152,6 +157,7 @@ partial class Simulator : GameWindow{
 		initializeScreens();
 		
 		initializeConfigPart2();
+		updateSceneConfigScreen();
 		
 		sim.tick();
 	}
@@ -164,13 +170,46 @@ partial class Simulator : GameWindow{
 	}
 	
 	void initializeConfigPart1(){
+		List<Keys> k = new List<Keys>{
+			fullscreen.key,
+			screenshot.key,
+			advancedMode.key,
+			showForces.key,
+			showPoints.key,
+			showBoxes.key,
+			tickForward.key,
+			pause.key,
+			tickRateUpKey.key,
+			tickRateDownKey.key,
+			runAtMax.key,
+			nextParticle.key,
+			quickAdd.key,
+			remove.key,
+			duplicate.key,
+			startSelection.key,
+			moveUp.key,
+			moveDown.key,
+			moveLeft.key,
+			moveRight.key
+		};
+		
+		int[] ka = new int[k.Count];
+		for(int i = 0; i < k.Count; i++){
+			ka[i] = (int) k[i];
+		}
+		
 		AshFileModel afm = new AshFileModel(new ModelInstance(ModelInstanceOperation.Type, "clouds", true),
 		new ModelInstance(ModelInstanceOperation.Type, "dotSize", 3f),
 		new ModelInstance(ModelInstanceOperation.Type, "bgColor", new Color3(8, 8, 26)),
 		new ModelInstance(ModelInstanceOperation.Type, "maxParticles", 1000),
 		new ModelInstance(ModelInstanceOperation.Type, "vsync", true),
 		new ModelInstance(ModelInstanceOperation.Type, "maxFps", 144),
-		new ModelInstance(ModelInstanceOperation.Type, "borderColor", new Color3(117, 215, 255)));
+		new ModelInstance(ModelInstanceOperation.Type, "wbColor", new Color3(117, 215, 255)),
+		new ModelInstance(ModelInstanceOperation.Type, "cloudsColor", new Color3(204, 204, 204)),
+		new ModelInstance(ModelInstanceOperation.Type, "savePath", ""),
+		new ModelInstance(ModelInstanceOperation.Type, "multithread", true),
+		new ModelInstance(ModelInstanceOperation.Type, "colMultithread", false),
+		new ModelInstance(ModelInstanceOperation.Type, "controls", ka));
 		
 		afm.deleteNotMentioned = true;
 		
@@ -178,6 +217,8 @@ partial class Simulator : GameWindow{
 		dep.config.Save();
 		
 		Simulation.setMaxParticles(dep.config.GetCamp<int>("maxParticles"));
+		Simulation.multiThreading = dep.config.GetCamp<bool>("multithread");
+		Simulation.collisionsMultiThreading = dep.config.GetCamp<bool>("colMultithread");
 	}
 	
 	void initializeConfigPart2(){		
@@ -188,15 +229,61 @@ partial class Simulator : GameWindow{
 		((PointRenderMode) ren.modes[3]).setPointSize(dep.config.GetCamp<float>("dotSize"));
 		setVsync(dep.config.GetCamp<bool>("vsync"));
 		maxFps = dep.config.GetCamp<int>("maxFps");
-		((BorderRenderMode) ren.modes[1]).setColor(dep.config.GetCamp<Color3>("borderColor"));
+		((BorderRenderMode) ren.modes[1]).setColor(dep.config.GetCamp<Color3>("wbColor"));
+		((BackgroundRenderMode) ren.modes[0]).setColor(dep.config.GetCamp<Color3>("cloudsColor"));
 		
-		((CheckButton) optionsScreen.buttons[2]).on = dep.config.GetCamp<bool>("clouds");
-		((Field) optionsScreen.buttons[3]).text = dep.config.GetCamp<float>("dotSize").ToString();
-		((Field) optionsScreen.buttons[4]).text = dep.config.GetCamp<Color3>("bgColor").ToString().Substring(1);
-		((Field) optionsScreen.buttons[5]).text = dep.config.GetCamp<int>("maxParticles").ToString();
-		((CheckButton) optionsScreen.buttons[7]).on = dep.config.GetCamp<bool>("vsync");
-		((Field) optionsScreen.buttons[8]).text = dep.config.GetCamp<int>("maxFps").ToString();
-		((Field) optionsScreen.buttons[9]).text = dep.config.GetCamp<Color3>("borderColor").ToString().Substring(1);
+		int[] ka = dep.config.GetCamp<int[]>("controls");
+		if(ka.Length > 19){
+			fullscreen.update((Keys)ka[0]);
+			screenshot.update((Keys)ka[1]);
+			advancedMode.update((Keys)ka[2]);
+			showForces.update((Keys)ka[3]);
+			showPoints.update((Keys)ka[4]);
+			showBoxes.update((Keys)ka[5]);
+			tickForward.update((Keys)ka[6]);
+			pause.update((Keys)ka[7]);
+			tickRateUpKey.update((Keys)ka[8]);
+			tickRateDownKey.update((Keys)ka[9]);
+			runAtMax.update((Keys)ka[10]);
+			nextParticle.update((Keys)ka[11]);
+			quickAdd.update((Keys)ka[12]);
+			remove.update((Keys)ka[13]);
+			duplicate.update((Keys)ka[14]);
+			startSelection.update((Keys)ka[15]);
+			moveUp.update((Keys)ka[16]);
+			moveDown.update((Keys)ka[17]);
+			moveLeft.update((Keys)ka[18]);
+			moveRight.update((Keys)ka[19]);
+		}
+		
+		((CheckButton) optionsScreen1.buttons[2]).on = dep.config.GetCamp<bool>("clouds");
+		((Field) optionsScreen1.buttons[3]).text = dep.config.GetCamp<Color3>("cloudsColor").ToString().Substring(1);
+		((Field) optionsScreen1.buttons[4]).text = dep.config.GetCamp<float>("dotSize").ToString();
+		((Field) optionsScreen1.buttons[5]).text = dep.config.GetCamp<Color3>("bgColor").ToString().Substring(1);
+		((CheckButton) optionsScreen1.buttons[8]).on = dep.config.GetCamp<bool>("vsync");
+		((Field) optionsScreen1.buttons[9]).text = dep.config.GetCamp<int>("maxFps").ToString();
+		((Field) optionsScreen1.buttons[6]).text = dep.config.GetCamp<Color3>("wbColor").ToString().Substring(1);
+		
+		((Field) optionsScreen2.buttons[1]).text = dep.config.GetCamp<int>("maxParticles").ToString();
+		((Field) optionsScreen2.buttons[2]).text = dep.config.GetCamp<string>("savePath");
+		((CheckButton) optionsScreen2.buttons[4]).on = dep.config.GetCamp<bool>("multithread");
+		((CheckButton) optionsScreen2.buttons[6]).on = dep.config.GetCamp<bool>("colMultithread");
+	}
+	
+	void updateSceneConfigScreen(){
+		if(sim.sceneName != null){
+			((Field) sceneConfigScreen.buttons[1]).text = sim.sceneName;
+		}
+		
+		if(sim.wb != null){
+			((CheckButton) sceneConfigScreen.buttons[3]).on = true;
+			((Field) sceneConfigScreen.buttons[4]).text = sim.wb.size.X.ToString();
+			((Field) sceneConfigScreen.buttons[5]).text = sim.wb.size.Y.ToString();
+		}else{
+			((CheckButton) sceneConfigScreen.buttons[3]).on = false;
+			((Field) sceneConfigScreen.buttons[4]).text = "1000";
+			((Field) sceneConfigScreen.buttons[5]).text = "1000";
+		}
 	}
 	
 	public void setVsync(bool b){
@@ -257,7 +344,7 @@ partial class Simulator : GameWindow{
 			break;
 		}
 		
-		if(screnshot.isActive(KeyboardState)){
+		if(screenshot.isActive(KeyboardState)){
 			captureScreenshot();
 			ren.setCornerInfo("Saved screenshot");
 		}
@@ -267,51 +354,16 @@ partial class Simulator : GameWindow{
 		}
 		
 		if(ren.currentScreen != null){
-			if(ren.currentScreen.writing){
-				if(del.isActive(KeyboardState)){
-					ren.currentScreen.tryDel();
-				}else if(!fieldLastWrite){
-					switch(ren.currentScreen.tryGet()){
-						case WritingType.Hex:
-						if(KeyBind.getHexTyping(KeyboardState, out char c)){
-							ren.currentScreen.tryAdd(c);
-							fieldLastWrite = true;
-						}
-						break;
-						
-						case WritingType.Int:
-						if(KeyBind.getIntTyping(KeyboardState, out c)){
-							ren.currentScreen.tryAdd(c);
-							fieldLastWrite = true;
-						}
-						break;
-						
-						case WritingType.Float:
-						if(KeyBind.getFloatTyping(KeyboardState, out c)){
-							ren.currentScreen.tryAdd(c);
-							fieldLastWrite = true;
-						}
-						break;
-						
-						case WritingType.FloatPositive:
-						if(KeyBind.getFloatPositiveTyping(KeyboardState, out c)){
-							ren.currentScreen.tryAdd(c);
-							fieldLastWrite = true;
-						}
-						break;
-						
-						case WritingType.String:
-						if(KeyBind.getStringTyping(KeyboardState, out c)){
-							ren.currentScreen.tryAdd(c);
-							fieldLastWrite = true;
-						}
-						break;
-					}
-					
-				}else{
-					if(!KeyBind.getFullTyping(KeyboardState, out char c)){
-						fieldLastWrite = false;
-					}
+			if(ren.currentScreen.writing && del.isActive(KeyboardState)){
+				ren.currentScreen.tryDelChar();
+				return;
+			}
+			
+			if(ren.currentScreen.doScroll){
+				if(logUp.isActive(KeyboardState)){
+					ren.currentScreen.scroll(ren, 40f * (float) dh.deltaTime);
+				}else if(logDown.isActive(KeyboardState)){
+					ren.currentScreen.scroll(ren, -40f * (float) dh.deltaTime);
 				}
 			}
 			return;
@@ -331,8 +383,7 @@ partial class Simulator : GameWindow{
 		
 		if(tickForward.isActive(KeyboardState)){
 			if(!sim.isRunning){
-				sim.tick();
-				ren.setCornerInfo("Tick advanced");
+				Task.Run(() => {sim.doOneTick(); ren.setCornerInfo("Tick advanced");});
 			}
 		}
 		
@@ -366,12 +417,13 @@ partial class Simulator : GameWindow{
 		if(showForces.isActive(KeyboardState)){
 			ren.modes[4].toggleActivation();
 			ren.modes[5].toggleActivation();
-			sim.changeForceMode = true;
 			sim.tryGenerate();
 			
 			if(ren.modes[4].active){
+				sim.changeForceMode = false;
 				ren.setCornerInfo("Forces enabled");
 			}else{
+				sim.changeForceMode = false;
 				ren.setCornerInfo("Forces disabled");
 			}
 		}
@@ -546,7 +598,7 @@ partial class Simulator : GameWindow{
 		if(!isFullscreened){
 			MonitorInfo mi = Monitors.GetMonitorFromWindow(this);
 			WindowState = WindowState.Fullscreen;
-			this.CurrentMonitor = mi.Handle;
+			this.CurrentMonitor = mi;
 			isFullscreened = true;
 			VSync = VSyncMode.On;
 		} else {
@@ -556,10 +608,14 @@ partial class Simulator : GameWindow{
 		}
 	}
 	
-	public static void checkErrors(){
+	public void checkErrors(){
 		OpenTK.Graphics.OpenGL.ErrorCode errorCode = GL.GetError();
         while(errorCode != OpenTK.Graphics.OpenGL.ErrorCode.NoError){
             Console.WriteLine("OpenGL Error: " + errorCode);
+			if(ren != null){
+				ren.setCornerInfo("OpenGL Error: " + errorCode, Renderer.redTextColor);
+			}
+			
             errorCode = GL.GetError();
         }
 	}
@@ -594,7 +650,7 @@ partial class Simulator : GameWindow{
 			bitmap.UnlockBits(data);
 	
 			// Save the image (or copy to clipboard if needed)
-			bitmap.Save(dep.path + "/screenshots/screenshot_" + DateTime.Now.ToString("dd-MM-yyyy_HH-mm-ss") + ".png", ImageFormat.Png);
+			bitmap.Save(dep.path + "/screenshots/" + DateTime.Now.ToString("dd-MM-yyyy_HH-mm-ss") + ".png", ImageFormat.Png);
 		}
 	}
 	
@@ -617,15 +673,63 @@ partial class Simulator : GameWindow{
 		if(ren.currentScreen == dropScreen){
 			if(f.FileNames.Length > 0){
 				if(File.Exists(f.FileNames[0])){
-					AshFile af = new AshFile(f.FileNames[0]);
-					setSimulation(FileConverter.getParticles(af).ToArray());
-					ren.setCornerInfo("Scene loaded");
+					Task.Run(() => loadScene(f.FileNames[0]));
 				}else{
 					ren.setCornerInfo("The file was not found");
 				}
 			}
 			closeCurrent();
 		}
+	}
+	
+	async Task loadScene(string p){
+		ren.setCornerInfo("Loading scene...");
+		AshFile af = new AshFile(p);
+		setSimulation(FileConverter.getScene(af));
+		ren.setCornerInfo("Scene loaded", Renderer.selectedTextColor);
+	}
+	
+	protected override void OnKeyDown(KeyboardKeyEventArgs e){
+		if(ren.currentScreen != null && ren.currentScreen.keySelecting && !e.IsRepeat && e.Key != Keys.Escape){
+			ren.currentScreen.trySetKeybind(e.Key);
+		}
+	}
+	
+	protected override void OnTextInput(TextInputEventArgs e){
+		if(ren.currentScreen != null && ren.currentScreen.writing){
+			string s = e.AsString;
+			switch(ren.currentScreen.tryGetWritingMode()){
+				case WritingType.Hex:
+				if(KeyBind.getHexTyping(s)){
+					ren.currentScreen.tryAddStr(s);
+				}
+				break;
+				
+				case WritingType.Int:
+				if(KeyBind.getIntTyping(s)){
+					ren.currentScreen.tryAddStr(s);
+				}
+				break;
+				
+				case WritingType.Float:
+				if(KeyBind.getFloatTyping(s)){
+					ren.currentScreen.tryAddStr(s);
+				}
+				break;
+				
+				case WritingType.FloatPositive:
+				if(KeyBind.getFloatPositiveTyping(s)){
+					ren.currentScreen.tryAddStr(s);
+				}
+				break;
+				
+				case WritingType.String:
+				ren.currentScreen.tryAddStr(s);
+				break;
+			}
+		}
+		
+		base.OnTextInput(e);
 	}
 	
 	protected override void OnLoad(){		

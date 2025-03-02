@@ -10,6 +10,10 @@ using OpenTK.Windowing.GraphicsLibraryFramework;
 using AshLib;
 using AshLib.AshFiles;
 
+#if WINDOWS
+	using Keys = OpenTK.Windowing.GraphicsLibraryFramework.Keys;
+#endif
+
 partial class Simulator : GameWindow{
 	Screen customRPFScreen;
 	Screen addParticleScreen;
@@ -17,8 +21,12 @@ partial class Simulator : GameWindow{
 	Screen infoScreen;
 	Screen helpScreen;
 	Screen pauseMenuScreen;
-	Screen optionsScreen;
+	Screen optionsScreen1;
+	Screen optionsScreen2;
 	Screen dropScreen;
+	Screen sceneConfigScreen;
+	Screen controlScreen1;
+	Screen controlScreen2;
 	
 	void initializeScreens(){
 		customRPFScreen = new Screen(new Text("Custom RPF", 0, 1, 0f, 20f, Renderer.titleTextColor),
@@ -56,31 +64,34 @@ partial class Simulator : GameWindow{
 										.setErrorText(new Text("", 0, 1, 0f, 60f, Renderer.redTextColor));
 										
 		newSimulationScreen = new Screen(new Text("New Simulation", 0, 1, 0f, 20f, Renderer.titleTextColor),
-										new TextButton("Solar System", 0, 0, 0f, 3f * Renderer.separation, 300f, Renderer.buttonColor).setAction(setSolarSystem),
-										new TextButton("Solara System", 0, 0, 0f, 2f * Renderer.separation, 300f, Renderer.buttonColor).setDescription("Fictional Star System").setAction(setSolara),
-										new TextButton("Kyra System", 0, 0, 0f, 1f * Renderer.separation, 300f, Renderer.buttonColor).setDescription("Fictional Star System").setAction(setKyra),
-										new TextButton("Random star system", 0, 0, 0f, 0f, 300f, Renderer.buttonColor).setDescription("Could be unstable!").setAction(setRanSS),
+										new TextButton("Solar System", 0, 0, 0f, 3f * Renderer.separation, 300f, Renderer.buttonColor).setAction(() => setSimulation(Examples.solntse)),
+										new TextButton("Solara System", 0, 0, 0f, 2f * Renderer.separation, 300f, Renderer.buttonColor).setDescription("Fictional Star System").setAction(() => setSimulation(Examples.solara)),
+										new TextButton("Kyra System", 0, 0, 0f, 1f * Renderer.separation, 300f, Renderer.buttonColor).setDescription("Fictional Star System").setAction(() => setSimulation(Examples.kyra)),
+										new TextButton("Random star system", 0, 0, 0f, 0f, 300f, Renderer.buttonColor).setDescription("Could be unstable!").setAction(() => setSimulation(PlanetSystem.Random)),
 										new TextButton("RPF", 0, 0, 0f, -1f * Renderer.separation, 300f, Renderer.buttonColor).setDescription("Random elemental particles").setAction(setRPF),
-										new ImageBackButton("pencil", 0, 0, 175f, -1f * Renderer.separation, Renderer.textSize.Y + 10f, Renderer.textSize.Y + 10f, Renderer.textColor, Renderer.buttonColor).setDescription("Edit").setAction(setCustomRPFScreen),
-										new TextButton("Empty", 0, 0, 0f, -2f * Renderer.separation, 300f, Renderer.buttonColor).setAction(setEmpty),
+										new ImageBackButton("pencil", 0, 0, 175f, -1f * Renderer.separation, Renderer.textSize.Y + 10f, Renderer.textSize.Y + 10f, Renderer.textColor, Renderer.buttonColor).setDescription("Edit").setAction(() => ren.setScreen(customRPFScreen)),
+										new TextButton("Empty", 0, 0, 0f, -2f * Renderer.separation, 300f, Renderer.buttonColor).setAction(() => setSimulation(new Scene(new List<Particle>(), null, generateRandomName()))),
 										new TextButton("Close", 0, -1, 0f, 1f * Renderer.separation, 300f, Renderer.redButtonColor).setAction(closeCurrent));
 										
 		infoScreen = new Screen(new Text("Info", 0, 1, 0f, 20f, Renderer.titleTextColor),
 										new Text("Unisim, created by Siljam", 0, 1, 0f, 3f * Renderer.textSize.Y, Renderer.selectedTextColor),
 										new Text("Version 1.2.0", 0, 1, 0f, 4f * Renderer.textSize.Y, Renderer.selectedTextColor),
-										new TextButton("GitHub", 0, -1, -200f, 3f * Renderer.separation, 190f, Renderer.buttonColor).setAction(github),
-										new TextButton("Desmos", 0, -1, 0f, 3f * Renderer.separation, 190f, Renderer.buttonColor).setDescription("Graph showing forces between two particles").setAction(desmos),
-										new TextButton("Instagram", 0, -1, 200f, 3f * Renderer.separation, 190f, Renderer.buttonColor).setDescription("Follow me on ig!").setAction(instagram),
+										new TextButton("GitHub", 0, -1, -200f, 3f * Renderer.separation, 190f, Renderer.buttonColor).setAction(() => Process.Start(new ProcessStartInfo("https://github.com/siljamdev/Unisim"){UseShellExecute = true})),
+										new TextButton("Desmos", 0, -1, 0f, 3f * Renderer.separation, 190f, Renderer.buttonColor).setDescription("Graph showing forces between two particles").setAction(() => Process.Start(new ProcessStartInfo("https://www.desmos.com/calculator/8bq31utqb4"){UseShellExecute = true})),
+										new TextButton("Instagram", 0, -1, 200f, 3f * Renderer.separation, 190f, Renderer.buttonColor).setDescription("Follow me on ig!").setAction(() => Process.Start(new ProcessStartInfo("https://www.instagram.com/siljamdev/"){UseShellExecute = true})),
 										new TextButton("Close", 0, -1, 0f, 1f * Renderer.separation, 300f, Renderer.redButtonColor).setAction(closeCurrent))
 										.setScrollingLog(new Log(20f, 20f, 6f * Renderer.textSize.Y, "Particle simulator, aiming to simulate both planet systems and elemental particles",
 														"Follow me on instagram for regular updates on my projects!",
 														"",
-														"### v1.2.0 Changelog - February 2025 ###",
+														"### v1.2.0 Changelog - March 2025 ###",
 														"+ Added square selections",
+														"+ Added the world border",
 														"+ Added options",
-														"+ Added many buttons and gui improvements",
-														"+ Updated AshLib to latest version",
+														"+ Added many buttons and gui improvements (A LOT!)",
+														"+ Updated AshLib and OpenTK to latest version",
 														"+ Added the ability to remove and duplicate particles",
+														"+ Added controls",
+														"+ Added multithreading to a lot of places, increasing performance (toggleable)",
 														"- Deleted the clouds keybind",
 														"",
 														"### v1.1.1b Changelog - January 2025 ###",
@@ -119,34 +130,104 @@ partial class Simulator : GameWindow{
 														"You can make a square selection with L or clicking the button.",
 														"You can delete a square selection or following particle with R or clicking the button.",
 														"You can duplicate a square selection or following particle with V or clicking the button.",
+														"You can set the world border and other scene configurations with the icon in the menu.",
 														"You can save and load scenes with the buttons in the pause menu."));
+														
+		Text optionsErrorText = new Text("", 0, 1, 0f, 60f, Renderer.redTextColor);
 		
-		optionsScreen = new Screen(new Text("Options", 0, 1, 0f, 20f, Renderer.titleTextColor),
-										new Text("Clouds:", 0, 0, 0f, 4f * Renderer.separation),
-										new CheckButton(true, 0, 0, 80f, 4f * Renderer.separation, Renderer.textSize.Y + 10f, Renderer.textSize.Y + 10f, Renderer.buttonColor),
-										new Field("Dot size:", "3", 0, 0, 100f, 3f * Renderer.separation, 90f, 5, WritingType.FloatPositive),
-										new Field("Background color:", "08081A", 0, 0, 150f, 2f * Renderer.separation, 120f, 6, WritingType.Hex),
-										new Field("Max particles:", "1000", 0, 0, 140f, 1f * Renderer.separation, 100f, 5, WritingType.Int).setDescription("Might reduce performance"),
-										new Text("Vsync:", 0, 0, 0f, 0f),
-										new CheckButton(true, 0, 0, 80f, 0f, Renderer.textSize.Y + 10f, Renderer.textSize.Y + 10f, Renderer.buttonColor),
-										new Field("Targer framerate:", "144", 0, 0, 150f, -1f * Renderer.separation, 100f, 4, WritingType.Int).setDescription("Vsync overrites it"),
-										new Field("Border color:", "75D7FF", 0, 0, 150f, -2f * Renderer.separation, 120f, 6, WritingType.Hex),
+		optionsScreen1 = new Screen(new Text("Options", 0, 1, 0f, 20f, Renderer.titleTextColor),
+										new Text("Clouds:", 0, 0, 20f, 4f * Renderer.separation),
+										new CheckButton(true, 0, 0, 110f, 4f * Renderer.separation, Renderer.textSize.Y + 10f, Renderer.textSize.Y + 10f, Renderer.buttonColor),
+										new Field("Cloud color:", "CCCCCC", 0, 0, 140f, 3f * Renderer.separation, 120f, 6, WritingType.Hex),
+										new Field("Dot size:", "3", 0, 0, 140f, 2f * Renderer.separation, 120f, 5, WritingType.FloatPositive),
+										new Field("Background color:", "08081A", 0, 0, 140f, 1f * Renderer.separation, 120f, 6, WritingType.Hex),
+										new Field("World border color:", "75D7FF", 0, 0, 140f, 0f, 120f, 6, WritingType.Hex),
+										new Text("Vsync:", 0, 0, 20f, -1f * Renderer.separation),
+										new CheckButton(true, 0, 0, 110f, -1f * Renderer.separation, Renderer.textSize.Y + 10f, Renderer.textSize.Y + 10f, Renderer.buttonColor),
+										new Field("Targer framerate:", "144", 0, 0, 140f, -2f * Renderer.separation, 120f, 4, WritingType.Int).setDescription("Vsync overrites it"),
+										new ImageBackButton("next", 1, 0, 10f, 0f, 45f, 45f, Renderer.textColor, Renderer.buttonColor).setAction(() => ren.setScreen(optionsScreen2)),
 										new TextButton("Reset", 0, -1, 0f, 3f * Renderer.separation, 300f, Renderer.buttonColor).setAction(resetConfig),
-										new TextButton("Done", 0, -1, 0f, 2f * Renderer.separation, 300f, Renderer.greenButtonColor).setAction(saveConfig),
+										new TextButton("Save", 0, -1, 0f, 2f * Renderer.separation, 300f, Renderer.greenButtonColor).setAction(saveConfig),
+										new TextButton("Close", 0, -1, 0f, 1f * Renderer.separation, 300f, Renderer.redButtonColor).setAction(closeCurrent))
+										.setWriting().setErrorText(optionsErrorText);
+										
+		optionsScreen2 = new Screen(new Text("Options", 0, 1, 0f, 20f, Renderer.titleTextColor),
+										new Field("Max particles:", "1000", 0, 0, 140f, 3f * Renderer.separation, 120f, 5, WritingType.Int).setDescription("Might reduce performance"),
+										new Field("Save path:", "", 0, 0, 40f, 2f * Renderer.separation, 300f, 35, WritingType.String).setDescription("Leave empty for default"),
+										new Text("Multithreading:", 0, 0, 30f, 1f * Renderer.separation),
+										new CheckButton(true, 0, 0, 170f, 1f * Renderer.separation, Renderer.textSize.Y + 10f, Renderer.textSize.Y + 10f, Renderer.buttonColor).setDescription("May be undeterministic"),
+										new Text("Collision multithreading:", 0, 0, -40f, 0f),
+										new CheckButton(false, 0, 0, 170f, 0f, Renderer.textSize.Y + 10f, Renderer.textSize.Y + 10f, Renderer.buttonColor).setDescription("Could be unstable"),
+										new TextButton("Controls", 0, 0, 0f, -1f * Renderer.separation, 300f, Renderer.buttonColor).setAction(() => ren.setScreen(controlScreen1)),
+										new ImageBackButton("previous", -1, 0, 10f, 0f, 45f, 45f, Renderer.textColor, Renderer.buttonColor).setAction(() => ren.setScreen(optionsScreen1)),
+										new TextButton("Reset", 0, -1, 0f, 3f * Renderer.separation, 300f, Renderer.buttonColor).setAction(resetConfig),
+										new TextButton("Save", 0, -1, 0f, 2f * Renderer.separation, 300f, Renderer.greenButtonColor).setAction(saveConfig),
+										new TextButton("Close", 0, -1, 0f, 1f * Renderer.separation, 300f, Renderer.redButtonColor).setAction(closeCurrent))
+										.setWriting().setErrorText(optionsErrorText);
+										
+		sceneConfigScreen = new Screen(new Text("Scene Config", 0, 1, 0f, 20f, Renderer.titleTextColor),
+										new Field("Scene name:", generateRandomName(), 0, 0, 120f, 2f * Renderer.separation, 200f, 20, WritingType.String),
+										new Text("World border:", 0, 0, 0f, 1f * Renderer.separation),
+										new CheckButton(false, 0, 0, 120f, 1f * Renderer.separation, Renderer.textSize.Y + 10f, Renderer.textSize.Y + 10f, Renderer.buttonColor),
+										new Field("Border X size:", "1000", 0, 0, 150f, 0f, 135f, 8, WritingType.FloatPositive),
+										new Field("Border Y size:", "1000", 0, 0, 150f, -1f * Renderer.separation, 135f, 8, WritingType.FloatPositive),
+										new TextButton("Reset", 0, -1, 0f, 3f * Renderer.separation, 300f, Renderer.buttonColor).setAction(resetSceneConfig),
+										new TextButton("Save", 0, -1, 0f, 2f * Renderer.separation, 300f, Renderer.greenButtonColor).setAction(updateSceneConfig),
 										new TextButton("Close", 0, -1, 0f, 1f * Renderer.separation, 300f, Renderer.redButtonColor).setAction(closeCurrent))
 										.setWriting().setErrorText(new Text("", 0, 1, 0f, 60f, Renderer.redTextColor));
 										
-		dropScreen = new Screen(new Text("Drop the file into the window", 0, 0, 0f, 0f, Renderer.selectedTextColor));
+		dropScreen = new Screen(new Text("Drop the file into the window", 0, 0, 0f, 0f, Renderer.selectedTextColor)
+										#if WINDOWS
+											,new ImageBackButton("file", 0, 0, 0f, -60f, 45f, 45f, Renderer.textColor, new Color3("CCB64B")).setDescription("Choose file").setAction(openFileDialog)
+										#endif
+										);
+		
+		Text controlErrorText = new Text("", 0, 1, 0f, 60f, Renderer.redTextColor);
+		
+		controlScreen1 = new Screen(new Text("Controls", 0, 1, 0f, 20f, Renderer.titleTextColor),
+										new KeyField("Fullscreen:", fullscreen, 0, 0, -70f, 3f * Renderer.separation),
+										new KeyField("Screenshot:", screenshot, 0, 0, -70f, 2f * Renderer.separation),
+										new KeyField("Advanced mode:", advancedMode, 0, 0, -70f, 1f * Renderer.separation),
+										new KeyField("Show forces:", showForces, 0, 0, -70f, 0f),
+										new KeyField("Show points:", showPoints, 0, 0, -70f, -1f * Renderer.separation),
+										new KeyField("Show boxes:", showBoxes, 0, 0, -70f, -2f * Renderer.separation),
+										new KeyField("Move up:", moveUp, 0, 0, 220, 2f * Renderer.separation),
+										new KeyField("Move left:", moveLeft, 0, 0, 220, 1f * Renderer.separation),
+										new KeyField("Move right:", moveRight, 0, 0, 220, 0f),
+										new KeyField("Move down:", moveDown, 0, 0, 220, -1f * Renderer.separation),
+										new ImageBackButton("next", 1, 0, 10f, 0f, 45f, 45f, Renderer.textColor, Renderer.buttonColor).setAction(() => ren.setScreen(controlScreen2)),
+										new TextButton("Reset", 0, -1, 0f, 3f * Renderer.separation, 300f, Renderer.buttonColor).setAction(resetControls),
+										new TextButton("Done", 0, -1, 0f, 2f * Renderer.separation, 300f, Renderer.greenButtonColor).setAction(doCheckControls),
+										new TextButton("Close", 0, -1, 0f, 1f * Renderer.separation, 300f, Renderer.redButtonColor).setAction(closeCurrent))
+										.setKeySelecting().setErrorText(controlErrorText).setCloseAction(saveControls);
+										
+		controlScreen2 = new Screen(new Text("Controls", 0, 1, 0f, 20f, Renderer.titleTextColor),
+										new KeyField("Tick:", tickForward, 0, 0, -70f, 2f * Renderer.separation),
+										new KeyField("Pause:", pause, 0, 0, -70f, 1f * Renderer.separation),
+										new KeyField("TPS up:", tickRateUpKey, 0, 0, -70f, 0f),
+										new KeyField("TPS down:", tickRateDownKey, 0, 0, -70f, -1f * Renderer.separation),
+										new KeyField("Max TPS:", runAtMax, 0, 0, -70f, -2f * Renderer.separation),
+										new KeyField("Start selection:", startSelection, 0, 0, 220, 2f * Renderer.separation),
+										new KeyField("Quick add:", quickAdd, 0, 0, 220, 1f * Renderer.separation),
+										new KeyField("Remove:", remove, 0, 0, 220, 0f),
+										new KeyField("Duplicate:", duplicate, 0, 0, 220, -1f * Renderer.separation),
+										new KeyField("Follow next:", nextParticle, 0, 0, 220, -2f * Renderer.separation),
+										new ImageBackButton("previous", -1, 0, 10f, 0f, 45f, 45f, Renderer.textColor, Renderer.buttonColor).setAction(() => ren.setScreen(controlScreen1)),
+										new TextButton("Reset", 0, -1, 0f, 3f * Renderer.separation, 300f, Renderer.buttonColor).setAction(resetControls),
+										new TextButton("Done", 0, -1, 0f, 2f * Renderer.separation, 300f, Renderer.greenButtonColor).setAction(doCheckControls),
+										new TextButton("Close", 0, -1, 0f, 1f * Renderer.separation, 300f, Renderer.redButtonColor).setAction(closeCurrent))
+										.setKeySelecting().setErrorText(controlErrorText).setCloseAction(saveControls);
 										
 		pauseMenuScreen = new Screen(new Text("Pause Menu", 0, 1, 0f, 20f, Renderer.titleTextColor),
 										new TextButton("Close", 0, -1, 0f, 1f * Renderer.separation, 300f, Renderer.redButtonColor).setAction(closeCurrent),
-										new TextButton("Options", 0, 0, 0f, 1f * Renderer.separation, 300f, Renderer.buttonColor).setAction(setOptionsScreen),
-										new TextButton("New Simulation", 0, 0, 0f, 0f, 300f, Renderer.buttonColor).setAction(setNewSimulationScreen),
-										new TextButton("Help", 0, 0, 0f, -1f * Renderer.separation, 300f, Renderer.buttonColor).setAction(setHelpScreen),
-										new TextButton("Info", 0, 0, 0f, -2f * Renderer.separation, 300f, Renderer.buttonColor).setAction(setInfoScreen),
+										new TextButton("Options", 0, 0, 0f, 1f * Renderer.separation, 300f, Renderer.buttonColor).setAction(() => ren.setScreen(optionsScreen1)),
+										new TextButton("New Simulation", 0, 0, 0f, 0f, 300f, Renderer.buttonColor).setAction(() => ren.setScreen(newSimulationScreen)),
+										new TextButton("Help", 0, 0, 0f, -1f * Renderer.separation, 300f, Renderer.buttonColor).setAction(() => ren.setScreen(helpScreen)),
+										new TextButton("Info", 0, 0, 0f, -2f * Renderer.separation, 300f, Renderer.buttonColor).setAction(() => ren.setScreen(infoScreen)),
 										new ImageButton("screenshot", 1, 0, 10f, 0f, 35f, 35f, Renderer.textColor).setDescription("Take screenshot").setAction(takeScreenshotButton),
-										new ImageButton("load", -1, 0, 10f, 15f, 30f, 30f, Renderer.textColor).setDescription("Load scene").setAction(loadScene),
+										new ImageButton("load", -1, 0, 10f, 15f, 30f, 30f, Renderer.textColor).setDescription("Load scene").setAction(() => ren.setScreen(dropScreen)),
 										new ImageButton("save", -1, 0, 10f, -15f, 30f, 30f, Renderer.textColor).setDescription("Save scene").setAction(saveScene),
+										new ImageButton("config", -1, 0, 10f, -90f, 30f, 30f, Renderer.textColor).setDescription("Scene config").setAction(() => ren.setScreen(sceneConfigScreen)),
 										new TextButton("Quit", 0, 0, 0f, 2.5f * Renderer.separation, 300f, Renderer.greenButtonColor).setAction(Close));
 	}
 	
@@ -161,7 +242,11 @@ partial class Simulator : GameWindow{
 		dep.config.SetCamp("maxParticles", 1000);
 		dep.config.SetCamp("vsync", true);
 		dep.config.SetCamp("maxFps", 144);
-		dep.config.SetCamp("borderColor", new Color3(117, 215, 255));
+		dep.config.SetCamp("wbColor", new Color3(117, 215, 255));
+		dep.config.SetCamp("cloudsColor", new Color3(204, 204, 204));
+		dep.config.SetCamp("savePath", "");
+		dep.config.SetCamp("multithread", true);
+		dep.config.SetCamp("colMultithread", false);
 		
 		ren.setBgColor(dep.config.GetCamp<Color3>("bgColor"));
 		if(dep.config.GetCamp<bool>("clouds") != ren.modes[0].active){
@@ -170,57 +255,75 @@ partial class Simulator : GameWindow{
 		((PointRenderMode) ren.modes[3]).setPointSize(dep.config.GetCamp<float>("dotSize"));
 		setVsync(dep.config.GetCamp<bool>("vsync"));
 		maxFps = dep.config.GetCamp<int>("maxFps");
-		((BorderRenderMode) ren.modes[1]).setColor(dep.config.GetCamp<Color3>("borderColor"));
+		((BorderRenderMode) ren.modes[1]).setColor(dep.config.GetCamp<Color3>("wbColor"));
+		((BackgroundRenderMode) ren.modes[0]).setColor(dep.config.GetCamp<Color3>("cloudsColor"));
 		
-		((CheckButton) optionsScreen.buttons[2]).on = dep.config.GetCamp<bool>("clouds");
-		((Field) optionsScreen.buttons[3]).text = dep.config.GetCamp<float>("dotSize").ToString();
-		((Field) optionsScreen.buttons[4]).text = dep.config.GetCamp<Color3>("bgColor").ToString().Substring(1);
-		((Field) optionsScreen.buttons[5]).text = dep.config.GetCamp<int>("maxParticles").ToString();
-		((CheckButton) optionsScreen.buttons[7]).on = dep.config.GetCamp<bool>("vsync");
-		((Field) optionsScreen.buttons[8]).text = dep.config.GetCamp<int>("maxFps").ToString();
-		((Field) optionsScreen.buttons[9]).text = dep.config.GetCamp<Color3>("borderColor").ToString().Substring(1);
+		((CheckButton) optionsScreen1.buttons[2]).on = dep.config.GetCamp<bool>("clouds");
+		((Field) optionsScreen1.buttons[3]).text = dep.config.GetCamp<Color3>("cloudsColor").ToString().Substring(1);
+		((Field) optionsScreen1.buttons[4]).text = dep.config.GetCamp<float>("dotSize").ToString();
+		((Field) optionsScreen1.buttons[5]).text = dep.config.GetCamp<Color3>("bgColor").ToString().Substring(1);
+		((CheckButton) optionsScreen1.buttons[8]).on = dep.config.GetCamp<bool>("vsync");
+		((Field) optionsScreen1.buttons[9]).text = dep.config.GetCamp<int>("maxFps").ToString();
+		((Field) optionsScreen1.buttons[6]).text = dep.config.GetCamp<Color3>("wbColor").ToString().Substring(1);
 		
-		dep.config.Save();
+		((Field) optionsScreen2.buttons[1]).text = dep.config.GetCamp<int>("maxParticles").ToString();
+		((Field) optionsScreen2.buttons[2]).text = dep.config.GetCamp<string>("savePath");
+		((CheckButton) optionsScreen2.buttons[4]).on = dep.config.GetCamp<bool>("multithread");
+		((CheckButton) optionsScreen2.buttons[6]).on = dep.config.GetCamp<bool>("colMultithread");
+		
+		//dep.config.Save();
 	}
 	
 	void saveConfig(){		
 		float d;
-		if(!float.TryParse(((Field) optionsScreen.buttons[3]).text, out d)){
-			optionsScreen.showError(ren, "Couldnt parse dot size");
+		if(!float.TryParse(((Field) optionsScreen1.buttons[4]).text, out d)){
+			optionsScreen1.showError(ren, "Couldnt parse dot size");
 			return;
 		}
 		
 		Color3 b;
-		if(!Color3.TryParse(((Field) optionsScreen.buttons[4]).text, out b)){
-			optionsScreen.showError(ren, "Couldnt parse background color");
-			return;
-		}
-		
-		int m;
-		if(!int.TryParse(((Field) optionsScreen.buttons[5]).text, out m)){
-			optionsScreen.showError(ren, "Couldnt parse max particles");
+		if(!Color3.TryParse(((Field) optionsScreen1.buttons[5]).text, out b)){
+			optionsScreen1.showError(ren, "Couldnt parse background color");
 			return;
 		}
 		
 		int f;
-		if(!int.TryParse(((Field) optionsScreen.buttons[8]).text, out f)){
-			optionsScreen.showError(ren, "Couldnt parse target framerate");
+		if(!int.TryParse(((Field) optionsScreen1.buttons[9]).text, out f)){
+			optionsScreen1.showError(ren, "Couldnt parse target framerate");
 			return;
 		}
 		
 		Color3 w;
-		if(!Color3.TryParse(((Field) optionsScreen.buttons[9]).text, out w)){
-			optionsScreen.showError(ren, "Couldnt parse border color");
+		if(!Color3.TryParse(((Field) optionsScreen1.buttons[6]).text, out w)){
+			optionsScreen1.showError(ren, "Couldnt parse border color");
 			return;
 		}
 		
-		dep.config.SetCamp("clouds", ((CheckButton) optionsScreen.buttons[2]).on);
+		Color3 c;
+		if(!Color3.TryParse(((Field) optionsScreen1.buttons[3]).text, out c)){
+			optionsScreen1.showError(ren, "Couldnt parse cloud color");
+			return;
+		}
+		
+		int m;
+		if(!int.TryParse(((Field) optionsScreen2.buttons[1]).text, out m)){
+			optionsScreen2.showError(ren, "Couldnt parse max particles");
+			return;
+		}
+		
+		dep.config.SetCamp("clouds", ((CheckButton) optionsScreen1.buttons[2]).on);
 		dep.config.SetCamp("dotSize", d);
 		dep.config.SetCamp("bgColor", b);
-		dep.config.SetCamp("maxParticles", m);
-		dep.config.SetCamp("vsync", ((CheckButton) optionsScreen.buttons[7]).on);
+		dep.config.SetCamp("vsync", ((CheckButton) optionsScreen1.buttons[8]).on);
 		dep.config.SetCamp("maxFps", f);
-		dep.config.SetCamp("borderColor", 2);
+		dep.config.SetCamp("wbColor", w);
+		dep.config.SetCamp("bgColor", b);
+		dep.config.SetCamp("cloudsColor", c);
+		
+		dep.config.SetCamp("savePath", ((Field) optionsScreen2.buttons[2]).text);
+		dep.config.SetCamp("maxParticles", m);
+		dep.config.SetCamp("multithread", ((CheckButton) optionsScreen2.buttons[4]).on);
+		dep.config.SetCamp("colMultithread", ((CheckButton) optionsScreen2.buttons[6]).on);
 		
 		ren.setBgColor(b);
 		if(dep.config.GetCamp<bool>("clouds") != ren.modes[0].active){
@@ -230,25 +333,290 @@ partial class Simulator : GameWindow{
 		setVsync(dep.config.GetCamp<bool>("vsync"));
 		maxFps = f;
 		((BorderRenderMode) ren.modes[1]).setColor(w);
+		((BackgroundRenderMode) ren.modes[0]).setColor(c);
 		
 		if(Simulation.maxParticles != m){
-			optionsScreen.showError(ren, "Some changes will apply when unisim restarts");
+			optionsScreen1.showError(ren, "Some changes will apply when unisim restarts");
+			ren.setCornerInfo("Config saved", Renderer.selectedTextColor);
 		}else{
-			optionsScreen.showError(ren, "");
+			optionsScreen1.showError(ren, "");
+			ren.setCornerInfo("Config saved", Renderer.selectedTextColor);
+			closeCurrent();
 		}
+		
+		Simulation.multiThreading = dep.config.GetCamp<bool>("multithread");
+		Simulation.collisionsMultiThreading = dep.config.GetCamp<bool>("colMultithread");
 		
 		dep.config.Save();
 	}
 	
-	void saveScene(){
-		AshFile af = FileConverter.getFile(sim.getParticlesForSaving());
-		dep.SaveAshFile("saves/scene_" + DateTime.Now.ToString("dd-MM-yyyy_HH-mm-ss") + ".unisim", af);
-		ren.setCornerInfo("Scene saved");
+	void resetSceneConfig(){
+		((CheckButton) sceneConfigScreen.buttons[3]).on = false;
+		((Field) sceneConfigScreen.buttons[4]).text = "1000";
+		((Field) sceneConfigScreen.buttons[5]).text = "1000";
+		//sim.setWorldBorder(null);
+	}
+	
+	void updateSceneConfig(){
+		sim.sceneName = ((Field) sceneConfigScreen.buttons[1]).text;
+		
+		if(!((CheckButton) sceneConfigScreen.buttons[3]).on){
+			sim.setWorldBorder(null);
+			ren.setCornerInfo("Scene updated", Renderer.selectedTextColor);
+			closeCurrent();
+			return;
+		}
+		
+		float x;
+		if(!float.TryParse(((Field) sceneConfigScreen.buttons[4]).text, out x)){
+			sceneConfigScreen.showError(ren, "Couldnt parse x size");
+			return;
+		}
+		
+		float y;
+		if(!float.TryParse(((Field) sceneConfigScreen.buttons[5]).text, out y)){
+			sceneConfigScreen.showError(ren, "Couldnt parse y size");
+			return;
+		}
+		
+		sim.setWorldBorder(new WorldBorder(x, y));
+		
+		ren.setCornerInfo("Scene updated", Renderer.selectedTextColor);
 		closeCurrent();
 	}
 	
-	void loadScene(){
-		ren.setScreen(dropScreen);
+	#if WINDOWS
+		void openFileDialog(){
+			Thread thread = new Thread(() => {
+			using(OpenFileDialog openFileDialog = new OpenFileDialog()){
+				openFileDialog.Title = "Select a file";
+				openFileDialog.Filter = "All Files|*.*";
+				
+				if(openFileDialog.ShowDialog() == DialogResult.OK){
+					if(File.Exists(openFileDialog.FileName)){
+						Task.Run(() => loadScene(openFileDialog.FileName));
+					}else{
+						ren.setCornerInfo("The file was not found");
+					}
+					closeCurrent();
+				}
+			}});
+			
+			thread.SetApartmentState(ApartmentState.STA); // Required for OpenFileDialog
+			thread.Start();
+			thread.Join(); // Wait for the dialog to close before continuing
+		}
+	#endif
+	
+	void saveScene(){
+		Task.Run(() => saveSceneTask(sim.getSceneForSaving()));
+	}
+	
+	async Task saveSceneTask(Scene sce){
+		ren.setCornerInfo("Saving scene...");
+		AshFile af = FileConverter.getFile(sce);
+		string attemptedPath = dep.config.GetCamp<string>("savePath");
+		if(attemptedPath != "" && Directory.Exists(attemptedPath)){
+			string n = attemptedPath + "/" + af.GetCampOrDefault("name", generateRandomName()) + ".unisim";
+			af.Save(n);
+			#if WINDOWS
+				Process.Start("explorer.exe", "/select,\"" + System.IO.Path.GetFullPath(n) + "\"");
+			#endif
+		}else{
+			string n = "saves/" + af.GetCampOrDefault("name", generateRandomName()) + ".unisim";
+			dep.SaveAshFile(n, af);
+			#if WINDOWS
+				Process.Start("explorer.exe", "/select,\"" + System.IO.Path.GetFullPath(dep.path + "/" + n) + "\"");
+			#endif
+		}
+		
+		ren.setCornerInfo("Scene saved", Renderer.selectedTextColor);
+		closeCurrent();
+	}
+	
+	void resetControls(){
+		fullscreen.update(Keys.F11);
+		screenshot.update(Keys.F2);
+		
+		advancedMode.update(Keys.LeftAlt);
+		
+		showForces.update(Keys.F3);
+		showPoints.update(Keys.F5);
+		showBoxes.update(Keys.F4);
+		
+		tickForward.update(Keys.F);
+		pause.update(Keys.Space);
+		
+		tickRateUpKey.update(Keys.KeyPadAdd);
+		tickRateDownKey.update(Keys.KeyPadSubtract);
+		runAtMax.update(Keys.M);
+		
+		nextParticle.update(Keys.Tab);
+		
+		quickAdd.update(Keys.E);
+		remove.update(Keys.R);
+		duplicate.update(Keys.V);
+		
+		startSelection.update(Keys.L);
+		
+		moveUp.update(Keys.W);
+		moveDown.update(Keys.S);
+		moveLeft.update(Keys.A);
+		moveRight.update(Keys.D);
+	}
+	
+	void doCheckControls(){
+		List<Keys> k = new List<Keys>{
+			fullscreen.key,
+			screenshot.key,
+			advancedMode.key,
+			showForces.key,
+			showPoints.key,
+			showBoxes.key,
+			tickForward.key,
+			pause.key,
+			tickRateUpKey.key,
+			tickRateDownKey.key,
+			runAtMax.key,
+			nextParticle.key,
+			quickAdd.key,
+			remove.key,
+			duplicate.key,
+			startSelection.key,
+			moveUp.key,
+			moveDown.key,
+			moveLeft.key,
+			moveRight.key
+		};
+		
+		HashSet<Keys> seen = new HashSet<Keys>();
+		
+		foreach(Keys key in k){
+			if(!seen.Add(key)){
+				controlScreen1.showError(ren, "Conflict found");
+				return;
+			}
+		}
+		
+		controlScreen1.showError(ren, "");
+		
+		doSaveControls();
+		closeCurrent();
+	}
+	
+	bool checkControls(){
+		List<Keys> k = new List<Keys>{
+			fullscreen.key,
+			screenshot.key,
+			advancedMode.key,
+			showForces.key,
+			showPoints.key,
+			showBoxes.key,
+			tickForward.key,
+			pause.key,
+			tickRateUpKey.key,
+			tickRateDownKey.key,
+			runAtMax.key,
+			nextParticle.key,
+			quickAdd.key,
+			remove.key,
+			duplicate.key,
+			startSelection.key,
+			moveUp.key,
+			moveDown.key,
+			moveLeft.key,
+			moveRight.key
+		};
+		
+		HashSet<Keys> seen = new HashSet<Keys>();
+		
+		foreach(Keys key in k){
+			if(!seen.Add(key)){
+				controlScreen1.showError(ren, "Conflict found");
+				ren.setCornerInfo("Conflict found in controls", Renderer.redTextColor);
+				return false;
+			}
+		}
+		
+		controlScreen1.showError(ren, "");
+		
+		return true;
+	}
+	
+	void doSaveControls(){
+		List<Keys> k = new List<Keys>{
+			fullscreen.key,
+			screenshot.key,
+			advancedMode.key,
+			showForces.key,
+			showPoints.key,
+			showBoxes.key,
+			tickForward.key,
+			pause.key,
+			tickRateUpKey.key,
+			tickRateDownKey.key,
+			runAtMax.key,
+			nextParticle.key,
+			quickAdd.key,
+			remove.key,
+			duplicate.key,
+			startSelection.key,
+			moveUp.key,
+			moveDown.key,
+			moveLeft.key,
+			moveRight.key
+		};
+		
+		int[] ka = new int[k.Count];
+		
+		for(int i = 0; i < k.Count; i++){
+			ka[i] = (int) k[i];
+		}
+		
+		dep.config.SetCamp("controls", ka);
+		dep.config.Save();
+		
+		ren.setCornerInfo("Controls saved", Renderer.selectedTextColor);
+	}
+	
+	void saveControls(){
+		if(!checkControls()){
+			return;
+		}
+		
+		List<Keys> k = new List<Keys>{
+			fullscreen.key,
+			screenshot.key,
+			advancedMode.key,
+			showForces.key,
+			showPoints.key,
+			showBoxes.key,
+			tickForward.key,
+			pause.key,
+			tickRateUpKey.key,
+			tickRateDownKey.key,
+			runAtMax.key,
+			nextParticle.key,
+			quickAdd.key,
+			remove.key,
+			duplicate.key,
+			startSelection.key,
+			moveUp.key,
+			moveDown.key,
+			moveLeft.key,
+			moveRight.key
+		};
+		
+		int[] ka = new int[k.Count];
+		
+		for(int i = 0; i < k.Count; i++){
+			ka[i] = (int) k[i];
+		}
+		
+		dep.config.SetCamp("controls", ka);
+		dep.config.Save();
+		
+		ren.setCornerInfo("Controls saved", Renderer.selectedTextColor);
 	}
 	
 	void closeCurrent(){
@@ -260,7 +628,14 @@ partial class Simulator : GameWindow{
 		takeScreenshotNextTick = true;
 	}
 	
-	void setSimulation(Particle[] p){
+	static string generateRandomName(int length = 16){
+		const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+		Random random = new Random();
+		return new string(Enumerable.Range(0, length)
+			.Select(_ => chars[random.Next(chars.Length)]).ToArray());
+	}
+	
+	void setSimulation(Scene sce){
 		if(sim.isRunning){
 			return;
 		}
@@ -270,15 +645,8 @@ partial class Simulator : GameWindow{
 		ren.cam.resetZoom();
 		ren.cam.updateForce();
 		
-		sim.reset(p);
-	}
-	
-	void setEmpty(){
-		setSimulation(new Particle[]{});
-	}
-	
-	void setSolarSystem(){
-		setSimulation(Examples.solntse);
+		sim.reset(sce);
+		updateSceneConfigScreen();
 	}
 	
 	void setRPF(){
@@ -349,18 +717,6 @@ partial class Simulator : GameWindow{
 		bool r = ((CheckButton)customRPFScreen.buttons[11]).on;
 		
 		setSimulation(Examples.RPFparams((int) m, (int) x, s, v, (int) b, (int) mw, (int) t, (int) c, (int) p, r));
-	}
-	
-	void setRanSS(){
-		setSimulation(PlanetSystem.Random);
-	}
-	
-	void setSolara(){
-		setSimulation(Examples.solara);
-	}
-	
-	void setKyra(){
-		setSimulation(Examples.kyra);
 	}
 	
 	void resetCustomRPF(){
@@ -504,47 +860,47 @@ partial class Simulator : GameWindow{
 			c = new Color3(((Field)addParticleScreen.buttons[2]).text);
 		}catch(Exception){
 			addParticleScreen.showError(ren, "Couldnt parse color");
-			ren.setCornerInfo("Couldnt parse color");
+			ren.setCornerInfo("Couldnt parse color", Renderer.redTextColor);
 			return;
 		}
 		
 		float mass;
 		if(!float.TryParse(((Field)addParticleScreen.buttons[3]).text, out mass)){
 			addParticleScreen.showError(ren, "Couldnt parse mass");
-			ren.setCornerInfo("Couldnt parse mass");
+			ren.setCornerInfo("Couldnt parse mass", Renderer.redTextColor);
 			return;
 		}
 		
 		if(mass <= 0f){
 			addParticleScreen.showError(ren, "Mass must be positive");
-			ren.setCornerInfo("Mass must be positive");
+			ren.setCornerInfo("Mass must be positive", Renderer.redTextColor);
 			return;
 		}
 		
 		float radius;
 		if(!float.TryParse(((Field)addParticleScreen.buttons[4]).text, out radius)){
 			addParticleScreen.showError(ren, "Couldnt parse radius");
-			ren.setCornerInfo("Couldnt parse radius");
+			ren.setCornerInfo("Couldnt parse radius", Renderer.redTextColor);
 			return;
 		}
 		
 		if(radius <= 0f){
 			addParticleScreen.showError(ren, "Radius must be positive");
-			ren.setCornerInfo("Radius must be positive");
+			ren.setCornerInfo("Radius must be positive", Renderer.redTextColor);
 			return;
 		}
 		
 		float charge;
 		if(!float.TryParse(((Field)addParticleScreen.buttons[5]).text, out charge)){
 			addParticleScreen.showError(ren, "Couldnt parse charge");
-			ren.setCornerInfo("Couldnt parse charge");
+			ren.setCornerInfo("Couldnt parse charge", Renderer.redTextColor);
 			return;
 		}
 		
 		float weak;
 		if(!float.TryParse(((Field)addParticleScreen.buttons[6]).text, out weak)){
 			addParticleScreen.showError(ren, "Couldnt parse weak");
-			ren.setCornerInfo("Couldnt parse weak");
+			ren.setCornerInfo("Couldnt parse weak", Renderer.redTextColor);
 			return;
 		}
 		
@@ -553,39 +909,7 @@ partial class Simulator : GameWindow{
 		ren.currentScreen = null;
 	}
 	
-	void setCustomRPFScreen(){
-		ren.setScreen(customRPFScreen);
-	}
-	
 	public void setAddParticleScreen(){
 		ren.setScreen(addParticleScreen);
-	}
-	
-	void github(){
-		Process.Start(new ProcessStartInfo("https://github.com/siljamdev/Unisim"){UseShellExecute = true});
-	}
-	
-	void desmos(){
-		Process.Start(new ProcessStartInfo("https://www.desmos.com/calculator/8bq31utqb4"){UseShellExecute = true});
-	}
-	
-	void instagram(){
-		Process.Start(new ProcessStartInfo("https://www.instagram.com/siljamdev/"){UseShellExecute = true});
-	}
-	
-	void setNewSimulationScreen(){
-		ren.setScreen(newSimulationScreen);
-	}
-	
-	void setInfoScreen(){
-		ren.setScreen(infoScreen);
-	}
-	
-	void setHelpScreen(){
-		ren.setScreen(helpScreen);
-	}
-	
-	void setOptionsScreen(){
-		ren.setScreen(optionsScreen);
 	}
 }

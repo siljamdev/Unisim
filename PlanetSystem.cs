@@ -10,6 +10,8 @@ class PlanetSystem{
 	
 	int lastPlanet;
 	
+	string name;
+	
 	public PlanetSystem(float starRadius, string starColor){
 		bodies = new List<Particle>();
 		bodies.Add(new Particle(new Vector2(0f, 0f), starRadius, new Color3(starColor)));
@@ -62,6 +64,11 @@ class PlanetSystem{
 	
 	static float random(Random r, float min, float max){
 		return (float) r.NextDouble() * (max - min) + min;
+	}
+	
+	public PlanetSystem setName(string n){
+		name = n;
+		return this;
 	}
 	
 	public PlanetSystem addPlanet(float radius, float distance, string color){
@@ -197,11 +204,11 @@ class PlanetSystem{
 		return this;
 	}
 	
-	public Particle[] getParticles(){
-		return bodies.ToArray();
+	public Scene getScene(){
+		return new Scene(bodies, null, (name == null ? bodies[0].name + " system" : name));
 	}
 	
-	public static implicit operator Particle[](PlanetSystem a){
-        return a.getParticles();
+	public static implicit operator Scene (PlanetSystem a){
+        return a.getScene();
     }
 }

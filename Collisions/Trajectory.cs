@@ -108,7 +108,7 @@ class Trajectory{
 	}
 	
 	public static bool getT(Trajectory a, WorldBorder wb, double r1, out Collision outT){
-		if(AABB.contained(a.box, wb.box)){
+		if(wb.contains(a.box)){
 			outT = null;
 			return false;
 		}

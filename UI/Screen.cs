@@ -1,10 +1,17 @@
 using System;
 using OpenTK;
 using OpenTK.Mathematics;
+using OpenTK.Windowing.GraphicsLibraryFramework;
 using AshLib;
+
+#if WINDOWS
+	using Keys = OpenTK.Windowing.GraphicsLibraryFramework.Keys;
+#endif
 
 class Screen{
 	public List<Button> buttons{get; private set;}
+	
+	public bool keySelecting;
 	
 	public bool writing;
 	public int selected;
@@ -29,6 +36,12 @@ class Screen{
 	
 	public Screen setWriting(){
 		writing = true;
+		selected = -1;
+		return this;
+	}
+	
+	public Screen setKeySelecting(){
+		keySelecting = true;
 		selected = -1;
 		return this;
 	}
@@ -92,9 +105,19 @@ class Screen{
 					
 					f.selected = true;
 					selected = i;
+				}else if(keySelecting && b is KeyField kf){
+					if(selected > -1 && buttons[selected] is KeyField p){
+						p.selected = false;
+					}
+					
+					kf.selected = true;
+					selected = i;
 				}else{
 					if(writing && selected > -1 && buttons[selected] is Field p){
 						p.selected = false;
+						selected = -1;
+					}else if(keySelecting && selected > -1 && buttons[selected] is KeyField kp){
+						kp.selected = false;
 						selected = -1;
 					}
 					
@@ -116,7 +139,13 @@ class Screen{
 		return false;
 	}
 	
-	public WritingType tryGet(){
+	public void trySetKeybind(Keys k){
+		if(keySelecting && selected != -1 && buttons[selected] is KeyField kf){
+			kf.key.update(k);
+		}
+	}
+	
+	public WritingType tryGetWritingMode(){
 		if(writing && selected > -1 && buttons[selected] is Field f){
 			return f.type;
 		}
@@ -124,13 +153,13 @@ class Screen{
 		return WritingType.Hex;
 	}
 	
-	public void tryAdd(char c){
+	public void tryAddStr(string s){
 		if(writing && selected != -1 && buttons[selected] is Field f){
-			f.addChar(c);
+			f.addStr(s);
 		}
 	}
 	
-	public void tryDel(){
+	public void tryDelChar(){
 		if(writing && selected != -1 && buttons[selected] is Field f){
 			f.delChar();
 		}

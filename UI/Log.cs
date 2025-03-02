@@ -10,6 +10,8 @@ class Log : Button{
 	float scrollOffset;
 	Vector2 margin;
 	
+	float ysize;
+	
 	public Log(float lm, float rm, float oy, params string[] t) : base(){
 		text = t;
 		
@@ -20,6 +22,9 @@ class Log : Button{
 	public void scroll(Renderer ren, float f){
 		f = -f;
 		if(scrollOffset <= 0f && f < 0f){
+			return;
+		}
+		if(scrollOffset > ysize && f > 0f){
 			return;
 		}
 		
@@ -47,6 +52,18 @@ class Log : Button{
 	
 	public override void updateBox(Renderer ren){
 		scrollOffset = 0f;
+		float d = 0f; //Size
+		
+		int maxChars = (int) ((ren.width - margin.X - margin.Y) / Renderer.textSize.X);
+		
+		for(int i = 0; i < text.Length; i++){
+			string[] lines = divideLines(text[i], maxChars);
+			for(int j = 0; j < lines.Length; j++){
+				d += Renderer.textSize.Y;
+			}
+			d += Renderer.fieldSeparation - Renderer.textSize.Y;
+		}
+		ysize = d;
 	}
 	
 	public static string[] divideLines(string input, int maxCharsPerLine)
