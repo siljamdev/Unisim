@@ -79,7 +79,7 @@ class Simulation{
 		if(particles.Count >= maxParticles){
 			return;
 		}
-		if(!(wb.box % p.position)){
+		if(wb != null && !(wb.box % p.position)){
 			return;
 		}
 		if(!isRunning){
@@ -96,14 +96,14 @@ class Simulation{
 		}
 		if(!isRunning){
 			par.ForEach(p => {
-				if(wb.box % p.position){
+				if(wb != null && wb.box % p.position){
 					particles.Add(p);
 				}
 			});
 			generate();
 		}else{
 			par.ForEach(p => {
-				if(wb.box % p.position){
+				if(wb != null && wb.box % p.position){
 					particlesToAdd.Add(p);
 				}
 			});
