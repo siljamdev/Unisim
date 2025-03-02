@@ -125,7 +125,7 @@ partial class Simulator : GameWindow{
 	}
 	
 	Simulator() : base(GameWindowSettings.Default, NativeWindowSettings.Default){
-		CenterWindow(new Vector2i(1024, 1024));
+		CenterWindow(new Vector2i(640, 480));
 		Title = "Unisim";
 		
 		FileDrop += onFileDropped;
