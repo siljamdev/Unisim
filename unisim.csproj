@@ -18,8 +18,8 @@
 	<IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
   </PropertyGroup>
   
-  <PropertyGroup Condition=" '$(OS)' == 'Windows_NT' ">
-	<DefineConstants>WINDOWS</DefineConstants>
+  <PropertyGroup Condition="('$(Configuration)' == 'Debug' and '$(OS)' == 'Windows_NT') or '$(RuntimeIdentifier)' == 'win-x64' or '$(RuntimeIdentifier)' == 'win-x86' or '$(RuntimeIdentifier)' == 'win-arm64'">
+    <DefineConstants>$(DefineConstants);WINDOWS</DefineConstants>
 	<UseWindowsForms>true</UseWindowsForms>
 	<TargetFramework>net8.0-windows</TargetFramework>
   </PropertyGroup>

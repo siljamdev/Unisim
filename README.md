@@ -1,5 +1,5 @@
 # Unisim
-![Icon of the application](res/icon.png)
+<img src="res/icon.png" width="200"/>
 
 Application to simulate particles and their interactions
 
