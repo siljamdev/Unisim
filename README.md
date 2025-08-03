@@ -33,6 +33,7 @@ Saved files are usually saved in `[APPDATA]/ashproject/unisim/saves`, although y
 
 ### Additional information
 
+Find the project on [itch.io](https://siljamdev.itch.io/unisim)  
 You can find some more information on my [instagram](https://www.instagram.com/siljamdev/)
 
 ### A note on scenes

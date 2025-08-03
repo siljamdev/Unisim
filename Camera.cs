@@ -48,7 +48,6 @@ class Camera{
 		targetZoom = 1.0f;
 		zoom = 1.0f;
 		updateMatrix();
-		notifyRenderer();
 	}
 	
 	void updateMatrix(){
@@ -66,7 +65,6 @@ class Camera{
 	
 	public void updateForce(){
 		updateMatrix();
-		notifyRenderer();
 	}
 	
 	public void setFollow(Particle p){
@@ -139,7 +137,6 @@ class Camera{
 			}
 			
 			updateMatrix();
-			notifyRenderer();
 		}
 	}
 	
